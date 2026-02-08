@@ -20,14 +20,13 @@
 <body>
   <div id="root"></div>
 
-  <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/recharts@2.12.7/umd/Recharts.min.js"></script>
-  <script crossorigin src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+  <!-- NO crossorigin attribute, NO Recharts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 
   <script type="text/babel">
 const {useState,useEffect,useMemo,useCallback,useRef}=React;
-const {RadarChart,PolarGrid,PolarAngleAxis,Radar,ResponsiveContainer}=Recharts;
 
 const GOLD="#c9a84c";
 const GOLD_LIGHT="#e8d5a0";
@@ -308,6 +307,23 @@ const copyText=async(text)=>{
   catch{try{const ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();const ok=document.execCommand("copy");document.body.removeChild(ta);return ok;}catch{return false;}}
 };
 
+const SimpleBarChart=({data})=>{
+  return(<div style={{padding:"20px 0"}}>
+    {data.map((d,i)=>{
+      const bc=d.score>70?RED:d.score>40?AMBER:GREEN;
+      return(<div key={i} style={{marginBottom:16}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+          <span style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.6)"}}>{d.domain}</span>
+          <span style={{fontFamily:FONT,fontSize:16,color:bc,fontWeight:500}}>{d.score}</span>
+        </div>
+        <div style={{height:8,background:"rgba(255,255,255,0.06)",borderRadius:4}}>
+          <div style={{height:"100%",width:`${d.score}%`,background:bc,borderRadius:4,transition:"width 0.8s ease"}}/>
+        </div>
+      </div>);
+    })}
+  </div>);
+};
+
 const WelcomeScreen=({onStart,hasSaved,onResume,onClearSaved})=>{
   const[v,setV]=useState(false);const[agreed,setAgreed]=useState(false);
   useEffect(()=>{setTimeout(()=>setV(true),100);},[]);
@@ -385,7 +401,7 @@ const ResultsScreen=({answers,onRestart})=>{
   const{availableCapacity:ac,taxLoadIndex:tli,mismatchCost:mc,taxCost:tc,experienceLoad:el,currentLoad:cl,domainLoads:dl,topDrivers:td,driverInterpretation:di}=r;
   const cc=ac>=70?GREEN:ac>=40?AMBER:RED;
   const cLine=ac>=70?"You have usable capacity today, but the ledger still shows where it is being spent.":ac>=40?"You are functioning, but a meaningful portion of your capacity is being consumed by load.":"What looks like low capacity is often high sustained output under heavy conditions.";
-  const radar=dl.map(d=>({domain:d.name.replace(" State Load","").replace(" Load",""),score:d.load??0,fullMark:100}));
+  const chartData=dl.map(d=>({domain:d.name.replace(" State Load","").replace(" Load",""),score:d.load??0}));
   const dm={};domains.forEach(d=>{dm[d.id]=d;});
 
   return(<div style={{minHeight:"100vh",padding:"32px 20px",maxWidth:600,margin:"0 auto",opacity:v?1:0,transition:"opacity 0.8s"}}>
@@ -403,7 +419,10 @@ const ResultsScreen=({answers,onRestart})=>{
       <p style={{fontFamily:FONT,fontSize:17,color:GOLD_LIGHT,fontStyle:"italic",marginBottom:4}}>The design was never wrong. The conditions were.</p>
       <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)"}}>Available today is what's left. The ledger shows where the cost is being generated.</p>
     </div>
-    <div style={{width:"100%",height:280,marginBottom:24}}><ResponsiveContainer><RadarChart data={radar} cx="50%" cy="50%" outerRadius="68%"><PolarGrid stroke="rgba(255,255,255,0.05)"/><PolarAngleAxis dataKey="domain" tick={{fill:"rgba(255,255,255,0.4)",fontSize:16,fontFamily:FONT}}/><Radar dataKey="score" stroke={GOLD} fill={GOLD} fillOpacity={0.12} strokeWidth={1.5} dot={{r:3,fill:GOLD}}/></RadarChart></ResponsiveContainer></div>
+    <div style={{background:BG_CARD,borderRadius:8,border:"1px solid rgba(255,255,255,0.04)",padding:"16px 20px",marginBottom:24}}>
+      <h3 style={{fontFamily:FONT,fontSize:16,color:GOLD,fontWeight:500,marginBottom:8,letterSpacing:"0.1em",textTransform:"uppercase"}}>Domain Overview</h3>
+      <SimpleBarChart data={chartData}/>
+    </div>
     <div style={{display:"flex",gap:12,marginBottom:24}}>
       <div style={{flex:1,padding:14,background:BG_CARD,borderRadius:8,border:"1px solid rgba(255,255,255,0.04)"}}>
         <div style={{fontSize:16,color:GOLD,letterSpacing:"0.15em",textTransform:"uppercase",fontFamily:FONT,marginBottom:8}}>Mismatch Cost</div>
@@ -504,7 +523,8 @@ function MisfitTaxLedger(){
   </div>);
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<MisfitTaxLedger/>);
+// FIX #2: Using ReactDOM.render() instead of createRoot
+ReactDOM.render(<MisfitTaxLedger />, document.getElementById("root"));
   </script>
 </body>
 </html>
