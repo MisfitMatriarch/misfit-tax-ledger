@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Misfit Tax Ledger</title>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     html,body,#root{min-height:100vh;height:100%;}
@@ -14,13 +14,12 @@
     button{font-family:inherit;border:none;background:none;cursor:pointer;}
     ::-webkit-scrollbar{width:6px;}
     ::-webkit-scrollbar-track{background:transparent;}
-    ::-webkit-scrollbar-thumb{background:rgba(201,168,76,0.2);border-radius:3px;}
+    ::-webkit-scrollbar-thumb{background:rgba(107,91,149,0.3);border-radius:3px;}
   </style>
 </head>
 <body>
   <div id="root"></div>
 
-  <!-- NO crossorigin attribute, NO Recharts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -28,20 +27,38 @@
   <script type="text/babel">
 const {useState,useEffect,useMemo,useCallback,useRef}=React;
 
-const GOLD="#c9a84c";
-const GOLD_LIGHT="#e8d5a0";
-const GOLD_DIM="rgba(201,168,76,0.3)";
+// BRAND COLORS
+const PURPLE="#7B6BA1";
+const PURPLE_LIGHT="#C4B8DC";
+const PURPLE_DIM="rgba(123,107,161,0.55)";
+const TEAL="#5BBFBA";
+const TEAL_BG="rgba(91,191,186,0.18)";
+const BEIGE="#D4C5A0";
+const PINK="#E52088";
+
 const BG_DEEP="#0b0a10";
-const BG_CARD="rgba(18,16,28,0.85)";
-const GREEN="#3a9e6e";
-const GREEN_BG="rgba(58,158,110,0.12)";
-const AMBER="#d4a03c";
-const AMBER_BG="rgba(212,160,60,0.12)";
-const RED="#c44040";
-const RED_BG="rgba(196,64,64,0.12)";
+const BG_CARD="rgba(24,22,36,0.95)";
+const GREEN=TEAL;
+const GREEN_BG=TEAL_BG;
+const AMBER=BEIGE;
+const AMBER_BG="rgba(212,197,160,0.18)";
+const RED=PINK;
+const RED_BG="rgba(229,32,136,0.18)";
 const FONT="'EB Garamond', Georgia, serif";
 const SCALE_MAX=4;
 const TRAFFIC_MAX=2;
+
+// Using PURPLE as main highlight color (replacing gold)
+const GOLD=PURPLE;
+const GOLD_LIGHT=PURPLE_LIGHT;
+const GOLD_DIM=PURPLE_DIM;
+
+// MUCH HIGHER OPACITY text colors for better readability
+const TEXT_BRIGHT="#ffffff";
+const TEXT_PRIMARY="rgba(255,255,255,0.97)";
+const TEXT_SECONDARY="rgba(255,255,255,0.88)";
+const TEXT_TERTIARY="rgba(255,255,255,0.75)";
+const TEXT_DIM="rgba(255,255,255,0.62)";
 
 const domains=[
   {
@@ -198,7 +215,7 @@ function mean(vals){const v=vals.filter(x=>x!==null&&x!==undefined);return v.len
 function to100(a){return a===null?null:Math.round((a/SCALE_MAX)*100);}
 function compRate(ids,ans){return ids.filter(id=>ans[id]!==undefined&&ans[id]!==null).length/ids.length;}
 function confLabel(r){return r>=0.85?"High":r>=0.6?"Moderate":r>=0.35?"Low":"Very low";}
-function confColor(l){return l==="High"?GREEN:l==="Moderate"?AMBER:RED;}
+function confColor(l){return l==="High"?TEAL:l==="Moderate"?AMBER:RED;}
 
 const questionById={};
 domains.forEach(d=>d.questions.forEach(q=>{questionById[q.id]=q;}));
@@ -245,56 +262,56 @@ function score(answers){
 }
 
 const GeodesicBg=()=>{
-  const stripes=useMemo(()=>Array.from({length:35},()=>({l:`${Math.random()*100}%`,t:`${Math.random()*100}%`,h:`${20+Math.random()*60}px`,r:Math.random()*360,o:0.12+Math.random()*0.12})),[]);
+  const stripes=useMemo(()=>Array.from({length:35},()=>({l:`${Math.random()*100}%`,t:`${Math.random()*100}%`,h:`${20+Math.random()*60}px`,r:Math.random()*360,o:0.18+Math.random()*0.15})),[]);
   return(<div style={{position:"fixed",inset:0,zIndex:0,overflow:"hidden",pointerEvents:"none"}}>
-    <div style={{position:"absolute",inset:0,background:`radial-gradient(ellipse at 30% 20%,rgba(201,168,76,0.06) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(120,90,180,0.05) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(201,168,76,0.02) 0%,transparent 70%),${BG_DEEP}`}}/>
-    {stripes.map((s,i)=>(<div key={i} style={{position:"absolute",left:s.l,top:s.t,width:1,height:s.h,background:`linear-gradient(to bottom,transparent,${GOLD_DIM},transparent)`,transform:`rotate(${s.r}deg)`,opacity:s.o}}/>))}
+    <div style={{position:"absolute",inset:0,background:`radial-gradient(ellipse at 30% 20%,rgba(123,107,161,0.12) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(91,191,186,0.08) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(123,107,161,0.05) 0%,transparent 70%),${BG_DEEP}`}}/>
+    {stripes.map((s,i)=>(<div key={i} style={{position:"absolute",left:s.l,top:s.t,width:1,height:s.h,background:`linear-gradient(to bottom,transparent,${PURPLE_DIM},transparent)`,transform:`rotate(${s.r}deg)`,opacity:s.o}}/>))}
   </div>);
 };
 
-const ProgressBar=({current,total})=>(<div style={{display:"flex",gap:4,padding:"0 4px",marginBottom:20}} role="progressbar" aria-valuenow={current+1} aria-valuemax={total}>{Array.from({length:total},(_,i)=>(<div key={i} style={{flex:1,height:3,borderRadius:2,background:i<current?GOLD:i===current?"rgba(201,168,76,0.45)":"rgba(255,255,255,0.06)",transition:"background 0.4s"}}/>))}</div>);
+const ProgressBar=({current,total})=>(<div style={{display:"flex",gap:6,padding:"0 4px",marginBottom:28}} role="progressbar" aria-valuenow={current+1} aria-valuemax={total}>{Array.from({length:total},(_,i)=>(<div key={i} style={{flex:1,height:5,borderRadius:3,background:i<current?PURPLE:i===current?"rgba(123,107,161,0.6)":"rgba(255,255,255,0.18)",transition:"background 0.4s"}}/>))}</div>);
 
-const SkipBtn=({onSkip})=>(<button type="button" onClick={onSkip} aria-label="Prefer not to answer" style={{marginTop:6,padding:"6px 12px",background:"none",border:"none",color:"rgba(255,255,255,0.35)",fontFamily:FONT,fontSize:16,cursor:"pointer",textDecoration:"underline",textDecorationColor:"rgba(255,255,255,0.15)"}}>Prefer not to answer</button>);
+const SkipBtn=({onSkip})=>(<button type="button" onClick={onSkip} aria-label="Prefer not to answer" style={{marginTop:12,padding:"12px 18px",background:"none",border:"none",color:TEXT_DIM,fontFamily:FONT,fontSize:19,fontWeight:500,cursor:"pointer",textDecoration:"underline",textDecorationColor:"rgba(255,255,255,0.35)"}}>Prefer not to answer</button>);
 
 const LikertQ=({question,value,onChange,onSkip})=>{
   const labels=question.labels||["Never","Occasionally","Often","Very often","Almost always"];
-  return(<div role="radiogroup" aria-label={question.text} style={{display:"flex",flexDirection:"column",gap:5}}>
-    {labels.map((l,i)=>(<button key={i} onClick={()=>onChange(i)} role="radio" aria-checked={value===i} tabIndex={0} style={{padding:"11px 16px",border:`1.5px solid ${value===i?GOLD:"rgba(255,255,255,0.06)"}`,borderRadius:6,background:value===i?"rgba(201,168,76,0.1)":"rgba(255,255,255,0.02)",color:value===i?GOLD_LIGHT:"rgba(255,255,255,0.4)",fontFamily:FONT,fontSize:17,cursor:"pointer",textAlign:"left",transition:"all 0.2s",lineHeight:1.4,outline:"none",boxShadow:"none"}} onFocus={e=>{e.target.style.boxShadow=`0 0 0 2px ${GOLD_DIM}`;}} onBlur={e=>{e.target.style.boxShadow="none";}}><span style={{opacity:0.4,marginRight:8,fontSize:17}}>{i}</span>{l}</button>))}
+  return(<div role="radiogroup" aria-label={question.text} style={{display:"flex",flexDirection:"column",gap:10}}>
+    {labels.map((l,i)=>(<button key={i} onClick={()=>onChange(i)} role="radio" aria-checked={value===i} tabIndex={0} style={{padding:"16px 22px",border:`2px solid ${value===i?PURPLE:"rgba(255,255,255,0.2)"}`,borderRadius:10,background:value===i?"rgba(123,107,161,0.2)":"rgba(255,255,255,0.05)",color:value===i?PURPLE_LIGHT:TEXT_SECONDARY,fontFamily:FONT,fontSize:20,fontWeight:value===i?600:500,cursor:"pointer",textAlign:"left",transition:"all 0.2s",lineHeight:1.4,outline:"none",boxShadow:"none"}} onFocus={e=>{e.target.style.boxShadow=`0 0 0 3px ${PURPLE_DIM}`;}} onBlur={e=>{e.target.style.boxShadow="none";}}><span style={{opacity:0.65,marginRight:14,fontSize:20,fontWeight:600}}>{i}</span>{l}</button>))}
     <SkipBtn onSkip={onSkip}/>
   </div>);
 };
 
 const TrafficQ=({question,value,onChange,onSkip})=>{
-  const btns=[{v:0,c:GREEN,b:GREEN_BG,l:question.greenLabel||"This is honoured"},{v:1,c:AMBER,b:AMBER_BG,l:question.amberLabel||"Partially – it's strained"},{v:2,c:RED,b:RED_BG,l:question.redLabel||"Overridden or not considered"}];
-  return(<div role="radiogroup" aria-label={question.text} style={{display:"flex",flexDirection:"column",gap:6}}>
-    {btns.map(b=>(<button key={b.v} onClick={()=>onChange(b.v)} role="radio" aria-checked={value===b.v} tabIndex={0} style={{padding:"12px 16px",border:`1.5px solid ${value===b.v?b.c:"rgba(255,255,255,0.06)"}`,borderRadius:6,background:value===b.v?b.b:"rgba(255,255,255,0.02)",color:value===b.v?b.c:"rgba(255,255,255,0.4)",fontFamily:FONT,fontSize:17,cursor:"pointer",textAlign:"left",transition:"all 0.2s",lineHeight:1.4,outline:"none",boxShadow:"none"}} onFocus={e=>{e.target.style.boxShadow=`0 0 0 2px ${GOLD_DIM}`;}} onBlur={e=>{e.target.style.boxShadow="none";}}>{b.l}</button>))}
+  const btns=[{v:0,c:TEAL,b:TEAL_BG,l:question.greenLabel||"This is honoured"},{v:1,c:AMBER,b:AMBER_BG,l:question.amberLabel||"Partially – it's strained"},{v:2,c:RED,b:RED_BG,l:question.redLabel||"Overridden or not considered"}];
+  return(<div role="radiogroup" aria-label={question.text} style={{display:"flex",flexDirection:"column",gap:10}}>
+    {btns.map(b=>(<button key={b.v} onClick={()=>onChange(b.v)} role="radio" aria-checked={value===b.v} tabIndex={0} style={{padding:"16px 22px",border:`2px solid ${value===b.v?b.c:"rgba(255,255,255,0.2)"}`,borderRadius:10,background:value===b.v?b.b:"rgba(255,255,255,0.05)",color:value===b.v?b.c:TEXT_SECONDARY,fontFamily:FONT,fontSize:20,fontWeight:value===b.v?600:500,cursor:"pointer",textAlign:"left",transition:"all 0.2s",lineHeight:1.4,outline:"none",boxShadow:"none"}} onFocus={e=>{e.target.style.boxShadow=`0 0 0 3px ${PURPLE_DIM}`;}} onBlur={e=>{e.target.style.boxShadow="none";}}>{b.l}</button>))}
     <SkipBtn onSkip={onSkip}/>
   </div>);
 };
 
-const SeasonQ=({question,value,onChange,onSkip})=>(<div role="radiogroup" aria-label={question.text} style={{display:"flex",flexDirection:"column",gap:5}}>
-  {question.options.map((o,i)=>(<button key={i} onClick={()=>onChange(o.value)} role="radio" aria-checked={value===o.value} tabIndex={0} style={{padding:"11px 16px",border:`1.5px solid ${value===o.value?GOLD:"rgba(255,255,255,0.06)"}`,borderRadius:6,background:value===o.value?"rgba(201,168,76,0.1)":"rgba(255,255,255,0.02)",color:value===o.value?GOLD_LIGHT:"rgba(255,255,255,0.4)",fontFamily:FONT,fontSize:17,cursor:"pointer",textAlign:"left",transition:"all 0.2s",lineHeight:1.4,outline:"none",boxShadow:"none"}} onFocus={e=>{e.target.style.boxShadow=`0 0 0 2px ${GOLD_DIM}`;}} onBlur={e=>{e.target.style.boxShadow="none";}}>{o.label}</button>))}
+const SeasonQ=({question,value,onChange,onSkip})=>(<div role="radiogroup" aria-label={question.text} style={{display:"flex",flexDirection:"column",gap:10}}>
+  {question.options.map((o,i)=>(<button key={i} onClick={()=>onChange(o.value)} role="radio" aria-checked={value===o.value} tabIndex={0} style={{padding:"16px 22px",border:`2px solid ${value===o.value?PURPLE:"rgba(255,255,255,0.2)"}`,borderRadius:10,background:value===o.value?"rgba(123,107,161,0.2)":"rgba(255,255,255,0.05)",color:value===o.value?PURPLE_LIGHT:TEXT_SECONDARY,fontFamily:FONT,fontSize:20,fontWeight:value===o.value?600:500,cursor:"pointer",textAlign:"left",transition:"all 0.2s",lineHeight:1.4,outline:"none",boxShadow:"none"}} onFocus={e=>{e.target.style.boxShadow=`0 0 0 3px ${PURPLE_DIM}`;}} onBlur={e=>{e.target.style.boxShadow="none";}}>{o.label}</button>))}
   <SkipBtn onSkip={onSkip}/>
 </div>);
 
 const Slider100Q=({question,value,onChange})=>{
   const isSet=value!==null&&value!==undefined;
   const val=isSet?value:50;
-  const c=!isSet?"rgba(255,255,255,0.2)":val>=70?GREEN:val>=40?AMBER:RED;
+  const c=!isSet?"rgba(255,255,255,0.5)":val>=70?TEAL:val>=40?AMBER:RED;
   return(<div>
-    <div style={{display:"flex",justifyContent:"center",marginBottom:12}}><span style={{fontFamily:FONT,fontSize:36,color:c,fontWeight:500}}>{isSet?`${val}%`:"–"}</span></div>
-    {!isSet&&<p style={{textAlign:"center",fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.4)",marginBottom:8,fontStyle:"italic"}}>Drag to set your number</p>}
-    <input type="range" min={0} max={100} value={val} onChange={e=>onChange(parseInt(e.target.value))} aria-label="Capacity percentage" style={{width:"100%",accentColor:isSet?GOLD:"rgba(255,255,255,0.15)",cursor:"pointer"}}/>
-    <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}><span style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)"}}>0% – Empty</span><span style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)"}}>100% – Good day</span></div>
+    <div style={{display:"flex",justifyContent:"center",marginBottom:16}}><span style={{fontFamily:FONT,fontSize:56,color:c,fontWeight:700}}>{isSet?`${val}%`:"–"}</span></div>
+    {!isSet&&<p style={{textAlign:"center",fontFamily:FONT,fontSize:20,color:TEXT_TERTIARY,marginBottom:14,fontStyle:"italic",fontWeight:500}}>Drag to set your number</p>}
+    <input type="range" min={0} max={100} value={val} onChange={e=>onChange(parseInt(e.target.value))} aria-label="Capacity percentage" style={{width:"100%",accentColor:isSet?PURPLE:"rgba(255,255,255,0.4)",cursor:"pointer",height:12}}/>
+    <div style={{display:"flex",justifyContent:"space-between",marginTop:12}}><span style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,fontWeight:600}}>0% – Empty</span><span style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,fontWeight:600}}>100% – Good day</span></div>
   </div>);
 };
 
 const QuestionBlock=({question,value,onChange,onSkip})=>{
   const skipped=value===null;
-  return(<div style={{marginBottom:20,padding:"16px 16px 14px",borderRadius:8,background:BG_CARD,border:`1px solid ${skipped?"rgba(255,255,255,0.02)":"rgba(255,255,255,0.05)"}`,opacity:skipped?0.5:1,transition:"opacity 0.3s"}}>
-    <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.85)",lineHeight:1.5,marginBottom:question.hint?4:12}}>{question.text}{question.required&&<span style={{color:RED,marginLeft:4}}>*</span>}</p>
-    {question.hint&&<p style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.4)",marginBottom:14,fontStyle:"italic",lineHeight:1.5}}>{question.hint}</p>}
-    {skipped&&<button type="button" onClick={()=>onChange(undefined)} style={{padding:"8px 16px",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,color:"rgba(255,255,255,0.45)",fontFamily:FONT,fontSize:17,cursor:"pointer"}}>Answer this question</button>}
+  return(<div style={{marginBottom:32,padding:"26px 28px 24px",borderRadius:14,background:BG_CARD,border:`1.5px solid ${skipped?"rgba(255,255,255,0.08)":"rgba(255,255,255,0.15)"}`,opacity:skipped?0.5:1,transition:"opacity 0.3s"}}>
+    <p style={{fontFamily:FONT,fontSize:21,color:TEXT_PRIMARY,lineHeight:1.5,marginBottom:question.hint?10:18,fontWeight:600}}>{question.text}{question.required&&<span style={{color:RED,marginLeft:6}}>*</span>}</p>
+    {question.hint&&<p style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,marginBottom:20,fontStyle:"italic",lineHeight:1.55,fontWeight:500}}>{question.hint}</p>}
+    {skipped&&<button type="button" onClick={()=>onChange(undefined)} style={{padding:"14px 24px",background:"rgba(255,255,255,0.1)",border:"1.5px solid rgba(255,255,255,0.25)",borderRadius:10,color:TEXT_SECONDARY,fontFamily:FONT,fontSize:19,fontWeight:600,cursor:"pointer"}}>Answer this question</button>}
     {!skipped&&question.type==="likert"&&<LikertQ question={question} value={value} onChange={onChange} onSkip={onSkip}/>}
     {!skipped&&question.type==="traffic"&&<TrafficQ question={question} value={value} onChange={onChange} onSkip={onSkip}/>}
     {!skipped&&question.type==="season"&&<SeasonQ question={question} value={value} onChange={onChange} onSkip={onSkip}/>}
@@ -308,16 +325,16 @@ const copyText=async(text)=>{
 };
 
 const SimpleBarChart=({data})=>{
-  return(<div style={{padding:"20px 0"}}>
+  return(<div style={{padding:"28px 0"}}>
     {data.map((d,i)=>{
-      const bc=d.score>70?RED:d.score>40?AMBER:GREEN;
-      return(<div key={i} style={{marginBottom:16}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-          <span style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.6)"}}>{d.domain}</span>
-          <span style={{fontFamily:FONT,fontSize:16,color:bc,fontWeight:500}}>{d.score}</span>
+      const bc=d.score>70?RED:d.score>40?AMBER:TEAL;
+      return(<div key={i} style={{marginBottom:22}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}>
+          <span style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,fontWeight:600}}>{d.domain}</span>
+          <span style={{fontFamily:FONT,fontSize:20,color:bc,fontWeight:700}}>{d.score}</span>
         </div>
-        <div style={{height:8,background:"rgba(255,255,255,0.06)",borderRadius:4}}>
-          <div style={{height:"100%",width:`${d.score}%`,background:bc,borderRadius:4,transition:"width 0.8s ease"}}/>
+        <div style={{height:14,background:"rgba(255,255,255,0.12)",borderRadius:7}}>
+          <div style={{height:"100%",width:`${d.score}%`,background:bc,borderRadius:7,transition:"width 0.8s ease"}}/>
         </div>
       </div>);
     })}
@@ -327,30 +344,30 @@ const SimpleBarChart=({data})=>{
 const WelcomeScreen=({onStart,hasSaved,onResume,onClearSaved})=>{
   const[v,setV]=useState(false);const[agreed,setAgreed]=useState(false);
   useEffect(()=>{setTimeout(()=>setV(true),100);},[]);
-  return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",padding:32,textAlign:"center",opacity:v?1:0,transform:v?"none":"translateY(20px)",transition:"all 0.8s"}}>
-    <div style={{fontSize:17,letterSpacing:"0.3em",color:GOLD_DIM,marginBottom:32,textTransform:"uppercase",fontFamily:FONT}}>The Misfit Tax Ledger</div>
-    <h1 style={{fontFamily:FONT,fontSize:"clamp(28px,5vw,42px)",fontWeight:500,color:GOLD_LIGHT,lineHeight:1.3,marginBottom:16,fontStyle:"italic"}}>What is this life<br/>actually costing you?</h1>
-    <div style={{width:40,height:1,background:GOLD_DIM,margin:"24px auto"}}/>
-    <p style={{fontFamily:FONT,fontSize:18,color:"rgba(255,255,255,0.55)",lineHeight:1.7,maxWidth:500,marginBottom:8}}>The gap between your design capacity and your current available capacity is the tax. This tool makes that gap visible – and locates where it's being generated.</p>
-    <p style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.35)",lineHeight:1.6,maxWidth:460,marginBottom:24}}>People are not starting from the same place. That's not a footnote – it's the thing most frameworks skip entirely.</p>
-    <div style={{background:BG_CARD,border:"1px solid rgba(255,255,255,0.06)",borderRadius:8,padding:"16px 20px",maxWidth:460,marginBottom:20,textAlign:"left"}}>
-      <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.45)",lineHeight:1.6,marginBottom:8}}><span style={{color:GOLD}}>7 domains</span> · ~45 questions · 15–25 minutes</p>
-      <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)",lineHeight:1.6,marginBottom:8}}>Every question can be skipped. The tool treats skipped as unknown, not zero.</p>
-      <p style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.35)",lineHeight:1.5}}>Not a diagnosis. Not medical advice. Not for employment decisions. Your answers stay in your browser unless you choose to export.</p>
+  return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",padding:40,textAlign:"center",opacity:v?1:0,transform:v?"none":"translateY(20px)",transition:"all 0.8s"}}>
+    <div style={{fontSize:20,letterSpacing:"0.3em",color:PURPLE,marginBottom:40,textTransform:"uppercase",fontFamily:FONT,fontWeight:600}}>The Misfit Tax Ledger</div>
+    <h1 style={{fontFamily:FONT,fontSize:"clamp(34px,6.5vw,54px)",fontWeight:600,color:PURPLE_LIGHT,lineHeight:1.3,marginBottom:24,fontStyle:"italic"}}>What is this life<br/>actually costing you?</h1>
+    <div style={{width:60,height:3,background:PURPLE,margin:"32px auto"}}/>
+    <p style={{fontFamily:FONT,fontSize:22,color:TEXT_SECONDARY,lineHeight:1.7,maxWidth:560,marginBottom:14,fontWeight:500}}>The gap between your design capacity and your current available capacity is the tax. This tool makes that gap visible – and locates where it's being generated.</p>
+    <p style={{fontFamily:FONT,fontSize:20,color:TEXT_TERTIARY,lineHeight:1.6,maxWidth:520,marginBottom:36,fontWeight:500}}>People are not starting from the same place. That's not a footnote – it's the thing most frameworks skip entirely.</p>
+    <div style={{background:BG_CARD,border:"1.5px solid rgba(255,255,255,0.15)",borderRadius:14,padding:"26px 32px",maxWidth:520,marginBottom:32,textAlign:"left"}}>
+      <p style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,lineHeight:1.6,marginBottom:14,fontWeight:500}}><span style={{color:PURPLE,fontWeight:700}}>7 domains</span> · ~45 questions · 15–25 minutes</p>
+      <p style={{fontFamily:FONT,fontSize:20,color:TEXT_TERTIARY,lineHeight:1.6,marginBottom:14,fontWeight:500}}>Every question can be skipped. The tool treats skipped as unknown, not zero.</p>
+      <p style={{fontFamily:FONT,fontSize:19,color:TEXT_DIM,lineHeight:1.55,fontWeight:500}}>Not a diagnosis. Not medical advice. Not for employment decisions. Your answers stay in your browser unless you choose to export.</p>
     </div>
-    {hasSaved&&<div style={{background:"rgba(201,168,76,0.06)",border:`1px solid ${GOLD_DIM}`,borderRadius:8,padding:"14px 20px",maxWidth:460,marginBottom:20,textAlign:"center"}}>
-      <p style={{fontFamily:FONT,fontSize:16,color:GOLD_LIGHT,marginBottom:10}}>You have progress saved from last time.</p>
-      <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-        <button onClick={onResume} style={{padding:"8px 20px",background:"rgba(201,168,76,0.1)",border:`1px solid ${GOLD}`,color:GOLD,fontFamily:FONT,fontSize:17,cursor:"pointer",borderRadius:4}}>Resume</button>
-        <button onClick={onClearSaved} style={{padding:"8px 20px",background:"transparent",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)",fontFamily:FONT,fontSize:17,cursor:"pointer",borderRadius:4}}>Start over</button>
+    {hasSaved&&<div style={{background:"rgba(123,107,161,0.15)",border:`2px solid ${PURPLE_DIM}`,borderRadius:14,padding:"22px 32px",maxWidth:520,marginBottom:32,textAlign:"center"}}>
+      <p style={{fontFamily:FONT,fontSize:20,color:PURPLE_LIGHT,marginBottom:16,fontWeight:600}}>You have progress saved from last time.</p>
+      <div style={{display:"flex",gap:16,justifyContent:"center"}}>
+        <button onClick={onResume} style={{padding:"14px 32px",background:"rgba(123,107,161,0.2)",border:`2px solid ${PURPLE}`,color:PURPLE_LIGHT,fontFamily:FONT,fontSize:19,fontWeight:700,cursor:"pointer",borderRadius:8}}>Resume</button>
+        <button onClick={onClearSaved} style={{padding:"14px 32px",background:"transparent",border:"2px solid rgba(255,255,255,0.2)",color:TEXT_TERTIARY,fontFamily:FONT,fontSize:19,fontWeight:600,cursor:"pointer",borderRadius:8}}>Start over</button>
       </div>
     </div>}
-    <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",marginBottom:24,fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.5)"}}>
-      <input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} style={{accentColor:GOLD,width:16,height:16}}/>
+    <label style={{display:"flex",alignItems:"center",gap:16,cursor:"pointer",marginBottom:36,fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,fontWeight:500}}>
+      <input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} style={{accentColor:PURPLE,width:22,height:22}}/>
       I understand this maps where capacity is being consumed – it is not a judgement.
     </label>
-    <button onClick={agreed?onStart:undefined} style={{padding:"14px 44px",background:"transparent",border:`1px solid ${agreed?GOLD:"rgba(255,255,255,0.06)"}`,color:agreed?GOLD:"rgba(255,255,255,0.12)",fontFamily:FONT,fontSize:17,letterSpacing:"0.15em",cursor:agreed?"pointer":"default",borderRadius:4,transition:"all 0.3s"}}>BEGIN</button>
-    <div style={{marginTop:48,fontSize:16,color:"rgba(255,255,255,0.35)",fontFamily:FONT}}>Tanya Hicks · Human Systems Architect · Neurodivergent Empowered</div>
+    <button onClick={agreed?onStart:undefined} style={{padding:"20px 64px",background:"transparent",border:`2.5px solid ${agreed?PURPLE:"rgba(255,255,255,0.18)"}`,color:agreed?PURPLE_LIGHT:"rgba(255,255,255,0.3)",fontFamily:FONT,fontSize:22,fontWeight:700,letterSpacing:"0.15em",cursor:agreed?"pointer":"default",borderRadius:8,transition:"all 0.3s"}}>BEGIN</button>
+    <div style={{marginTop:64,fontSize:19,color:TEXT_DIM,fontFamily:FONT,fontWeight:500}}>Tanya Hicks · Human Systems Architect · Neurodivergent Empowered</div>
   </div>);
 };
 
@@ -375,20 +392,20 @@ const DomainScreen=({domain,domainIndex,answers,setAnswers,onNext,onBack})=>{
   },[setAnswers]);
   const canProceed=domainIndex!==6||(answers["Q9.1"]!==undefined&&answers["Q9.1"]!==null);
 
-  return(<div style={{minHeight:"100vh",padding:"24px 20px",maxWidth:600,margin:"0 auto",opacity:v?1:0,transform:v?"none":"translateY(12px)",transition:"all 0.5s"}}>
+  return(<div style={{minHeight:"100vh",padding:"36px 32px",maxWidth:700,margin:"0 auto",opacity:v?1:0,transform:v?"none":"translateY(12px)",transition:"all 0.5s"}}>
     <ProgressBar current={domainIndex} total={7}/>
-    <div style={{display:"inline-block",padding:"4px 12px",borderRadius:3,marginBottom:12,background:isDesign?"rgba(201,168,76,0.1)":"rgba(255,255,255,0.04)",border:`1px solid ${isDesign?GOLD_DIM:"rgba(255,255,255,0.06)"}`,fontSize:16,letterSpacing:"0.2em",textTransform:"uppercase",color:isDesign?GOLD:"rgba(255,255,255,0.35)",fontFamily:FONT}}>{domain.type} · {domain.layers}</div>
-    <h2 style={{fontFamily:FONT,fontSize:"clamp(22px,4vw,28px)",fontWeight:500,color:GOLD_LIGHT,marginBottom:6,lineHeight:1.3}}>{domain.name}</h2>
-    <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.4)",marginBottom:8,fontStyle:"italic"}}>{domain.subtitle}</p>
-    <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)",marginBottom:24,lineHeight:1.6}}>{domain.intro}</p>
+    <div style={{display:"inline-block",padding:"8px 18px",borderRadius:6,marginBottom:18,background:isDesign?"rgba(123,107,161,0.2)":"rgba(255,255,255,0.1)",border:`1.5px solid ${isDesign?PURPLE_DIM:"rgba(255,255,255,0.18)"}`,fontSize:18,fontWeight:600,letterSpacing:"0.2em",textTransform:"uppercase",color:isDesign?PURPLE:TEXT_DIM,fontFamily:FONT}}>{domain.type} · {domain.layers}</div>
+    <h2 style={{fontFamily:FONT,fontSize:"clamp(28px,5.5vw,40px)",fontWeight:600,color:PURPLE_LIGHT,marginBottom:12,lineHeight:1.3}}>{domain.name}</h2>
+    <p style={{fontFamily:FONT,fontSize:22,color:TEXT_SECONDARY,marginBottom:14,fontStyle:"italic",fontWeight:500}}>{domain.subtitle}</p>
+    <p style={{fontFamily:FONT,fontSize:20,color:TEXT_TERTIARY,marginBottom:36,lineHeight:1.6,fontWeight:500}}>{domain.intro}</p>
     {domain.questions.map(q=>(<QuestionBlock key={q.id} question={q} value={answers[q.id]} onChange={val=>ans(q.id,val)} onSkip={()=>skip(q.id)}/>))}
-    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:16,marginBottom:8,padding:"0 4px"}}>
-      <span style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.4)"}}>{completed}/{total} completed</span>
-      {low&&<span style={{fontFamily:FONT,fontSize:16,color:AMBER,fontStyle:"italic"}}>Low completion – results will have low confidence</span>}
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:28,marginBottom:14,padding:"0 4px"}}>
+      <span style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,fontWeight:600}}>{completed}/{total} completed</span>
+      {low&&<span style={{fontFamily:FONT,fontSize:19,color:AMBER,fontStyle:"italic",fontWeight:500}}>Low completion – results will have low confidence</span>}
     </div>
-    <div style={{display:"flex",gap:12,marginTop:12,marginBottom:40}}>
-      {domainIndex>0&&<button onClick={onBack} style={{flex:1,padding:"12px 0",background:"transparent",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)",fontFamily:FONT,fontSize:16,cursor:"pointer",borderRadius:4}}>← Back</button>}
-      <button onClick={canProceed?onNext:undefined} style={{flex:2,padding:"12px 0",background:"transparent",border:`1px solid ${canProceed?GOLD:"rgba(255,255,255,0.05)"}`,color:canProceed?GOLD:"rgba(255,255,255,0.12)",fontFamily:FONT,fontSize:16,cursor:canProceed?"pointer":"default",borderRadius:4,letterSpacing:"0.1em",transition:"all 0.3s"}}>{domainIndex===6?(canProceed?"See my results →":"Capacity slider required to continue"):"Next domain →"}</button>
+    <div style={{display:"flex",gap:18,marginTop:18,marginBottom:56}}>
+      {domainIndex>0&&<button onClick={onBack} style={{flex:1,padding:"18px 0",background:"transparent",border:"2px solid rgba(255,255,255,0.2)",color:TEXT_TERTIARY,fontFamily:FONT,fontSize:19,fontWeight:600,cursor:"pointer",borderRadius:8}}>← Back</button>}
+      <button onClick={canProceed?onNext:undefined} style={{flex:2,padding:"18px 0",background:"transparent",border:`2.5px solid ${canProceed?PURPLE:"rgba(255,255,255,0.12)"}`,color:canProceed?PURPLE_LIGHT:"rgba(255,255,255,0.3)",fontFamily:FONT,fontSize:19,fontWeight:700,cursor:canProceed?"pointer":"default",borderRadius:8,letterSpacing:"0.1em",transition:"all 0.3s"}}>{domainIndex===6?(canProceed?"See my results →":"Capacity slider required to continue"):"Next domain →"}</button>
     </div>
   </div>);
 };
@@ -399,65 +416,65 @@ const ResultsScreen=({answers,onRestart})=>{
   useEffect(()=>{setTimeout(()=>setV(true),100);},[]);
   const r=score(answers);
   const{availableCapacity:ac,taxLoadIndex:tli,mismatchCost:mc,taxCost:tc,experienceLoad:el,currentLoad:cl,domainLoads:dl,topDrivers:td,driverInterpretation:di}=r;
-  const cc=ac>=70?GREEN:ac>=40?AMBER:RED;
+  const cc=ac>=70?TEAL:ac>=40?AMBER:RED;
   const cLine=ac>=70?"You have usable capacity today, but the ledger still shows where it is being spent.":ac>=40?"You are functioning, but a meaningful portion of your capacity is being consumed by load.":"What looks like low capacity is often high sustained output under heavy conditions.";
   const chartData=dl.map(d=>({domain:d.name.replace(" State Load","").replace(" Load",""),score:d.load??0}));
   const dm={};domains.forEach(d=>{dm[d.id]=d;});
 
-  return(<div style={{minHeight:"100vh",padding:"32px 20px",maxWidth:600,margin:"0 auto",opacity:v?1:0,transition:"opacity 0.8s"}}>
-    <div style={{textAlign:"center",marginBottom:24}}>
-      <div style={{fontSize:17,letterSpacing:"0.3em",color:GOLD_DIM,marginBottom:8,textTransform:"uppercase",fontFamily:FONT}}>Your Misfit Tax Ledger</div>
-      <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)",marginBottom:20}}>This is not a diagnosis. It is a map of where capacity is being consumed. This ledger exists because capacity comparisons without context are meaningless.</p>
-      <div style={{width:140,height:140,borderRadius:"50%",margin:"0 auto 12px",border:`2px solid ${cc}`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:`radial-gradient(circle,${cc}10 0%,transparent 70%)`}}>
-        <span style={{fontFamily:FONT,fontSize:42,color:cc,fontWeight:500}}>{ac??"-"}%</span>
-        <span style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.35)",letterSpacing:"0.08em"}}>available today</span>
+  return(<div style={{minHeight:"100vh",padding:"44px 32px",maxWidth:700,margin:"0 auto",opacity:v?1:0,transition:"opacity 0.8s"}}>
+    <div style={{textAlign:"center",marginBottom:36}}>
+      <div style={{fontSize:20,letterSpacing:"0.3em",color:PURPLE,marginBottom:14,textTransform:"uppercase",fontFamily:FONT,fontWeight:600}}>Your Misfit Tax Ledger</div>
+      <p style={{fontFamily:FONT,fontSize:20,color:TEXT_TERTIARY,marginBottom:32,lineHeight:1.6,fontWeight:500}}>This is not a diagnosis. It is a map of where capacity is being consumed. This ledger exists because capacity comparisons without context are meaningless.</p>
+      <div style={{width:170,height:170,borderRadius:"50%",margin:"0 auto 18px",border:`5px solid ${cc}`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:`radial-gradient(circle,${cc}25 0%,transparent 70%)`}}>
+        <span style={{fontFamily:FONT,fontSize:60,color:cc,fontWeight:700}}>{ac??"-"}%</span>
+        <span style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,letterSpacing:"0.08em",fontWeight:600}}>available today</span>
       </div>
-      <p style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.4)",fontStyle:"italic",maxWidth:420,margin:"0 auto 6px"}}>{cLine}</p>
-      {tli!==null&&<p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.4)"}}>Tax load index: {tli}/100</p>}
+      <p style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,fontStyle:"italic",maxWidth:480,margin:"0 auto 12px",fontWeight:500}}>{cLine}</p>
+      {tli!==null&&<p style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,fontWeight:500}}>Tax load index: <strong style={{fontWeight:700}}>{tli}/100</strong></p>}
     </div>
-    <div style={{textAlign:"center",padding:16,background:BG_CARD,borderRadius:8,border:"1px solid rgba(255,255,255,0.04)",marginBottom:24}}>
-      <p style={{fontFamily:FONT,fontSize:17,color:GOLD_LIGHT,fontStyle:"italic",marginBottom:4}}>The design was never wrong. The conditions were.</p>
-      <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)"}}>Available today is what's left. The ledger shows where the cost is being generated.</p>
+    <div style={{textAlign:"center",padding:24,background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.1)",marginBottom:36}}>
+      <p style={{fontFamily:FONT,fontSize:23,color:PURPLE_LIGHT,fontStyle:"italic",marginBottom:10,fontWeight:600}}>The design was never wrong. The conditions were.</p>
+      <p style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,fontWeight:500}}>Available today is what's left. The ledger shows where the cost is being generated.</p>
     </div>
-    <div style={{background:BG_CARD,borderRadius:8,border:"1px solid rgba(255,255,255,0.04)",padding:"16px 20px",marginBottom:24}}>
-      <h3 style={{fontFamily:FONT,fontSize:16,color:GOLD,fontWeight:500,marginBottom:8,letterSpacing:"0.1em",textTransform:"uppercase"}}>Domain Overview</h3>
+    <div style={{background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.1)",padding:"24px 30px",marginBottom:36}}>
+      <h3 style={{fontFamily:FONT,fontSize:19,color:PURPLE,fontWeight:700,marginBottom:14,letterSpacing:"0.12em",textTransform:"uppercase"}}>Domain Overview</h3>
       <SimpleBarChart data={chartData}/>
     </div>
-    <div style={{display:"flex",gap:12,marginBottom:24}}>
-      <div style={{flex:1,padding:14,background:BG_CARD,borderRadius:8,border:"1px solid rgba(255,255,255,0.04)"}}>
-        <div style={{fontSize:16,color:GOLD,letterSpacing:"0.15em",textTransform:"uppercase",fontFamily:FONT,marginBottom:8}}>Mismatch Cost</div>
-        <div style={{fontFamily:FONT,fontSize:24,color:GOLD_LIGHT,marginBottom:4}}>{mc!==null?Math.round(mc):"-"}/100</div>
-        <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.4)",lineHeight:1.5}}>Design vs environment.</p>
+    <div style={{display:"flex",gap:18,marginBottom:36}}>
+      <div style={{flex:1,padding:24,background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.1)"}}>
+        <div style={{fontSize:18,color:PURPLE,letterSpacing:"0.15em",textTransform:"uppercase",fontFamily:FONT,marginBottom:14,fontWeight:700}}>Mismatch Cost</div>
+        <div style={{fontFamily:FONT,fontSize:36,color:PURPLE_LIGHT,marginBottom:10,fontWeight:700}}>{mc!==null?Math.round(mc):"-"}/100</div>
+        <p style={{fontFamily:FONT,fontSize:19,color:TEXT_SECONDARY,lineHeight:1.5,fontWeight:500}}>Design vs environment.</p>
       </div>
-      <div style={{flex:1,padding:14,background:BG_CARD,borderRadius:8,border:"1px solid rgba(255,255,255,0.04)"}}>
-        <div style={{fontSize:16,color:GOLD,letterSpacing:"0.15em",textTransform:"uppercase",fontFamily:FONT,marginBottom:8}}>Condition Tax</div>
-        <div style={{fontFamily:FONT,fontSize:24,color:GOLD_LIGHT,marginBottom:4}}>{tc!==null?Math.round(tc):"-"}/100</div>
-        <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.4)",lineHeight:1.5}}>Identity, relational, structural load.</p>
+      <div style={{flex:1,padding:24,background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.1)"}}>
+        <div style={{fontSize:18,color:PURPLE,letterSpacing:"0.15em",textTransform:"uppercase",fontFamily:FONT,marginBottom:14,fontWeight:700}}>Condition Tax</div>
+        <div style={{fontFamily:FONT,fontSize:36,color:PURPLE_LIGHT,marginBottom:10,fontWeight:700}}>{tc!==null?Math.round(tc):"-"}/100</div>
+        <p style={{fontFamily:FONT,fontSize:19,color:TEXT_SECONDARY,lineHeight:1.5,fontWeight:500}}>Identity, relational, structural load.</p>
       </div>
     </div>
-    <h3 style={{fontFamily:FONT,fontSize:18,color:GOLD,fontWeight:500,marginBottom:8,letterSpacing:"0.08em"}}>Top drivers of cost today</h3>
-    <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)",marginBottom:16,fontStyle:"italic"}}>{di}</p>
-    {td.map((t,i)=>{const d=dm[t.key];const bc=t.load>70?RED:t.load>40?AMBER:GREEN;return(<div key={i} style={{marginBottom:20,padding:16,background:BG_CARD,borderRadius:8,border:"1px solid rgba(255,255,255,0.04)"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><span style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.8)"}}>{t.name}</span><span style={{fontFamily:FONT,fontSize:17,color:bc,fontWeight:500}}>{t.load}/100</span></div>
-      <div style={{height:4,background:"rgba(255,255,255,0.04)",borderRadius:2,marginBottom:14}}><div style={{height:"100%",width:`${t.load}%`,background:bc,borderRadius:2,transition:"width 1s"}}/></div>
-      <div style={{display:"flex",gap:8,marginBottom:12}}><span style={{fontSize:17,color:"rgba(255,255,255,0.35)",fontFamily:FONT,fontStyle:"italic"}}>{d?.type}</span><span style={{fontSize:17,color:confColor(t.conf),fontFamily:FONT}}>Confidence: {t.conf}</span></div>
-      {d&&[{l:"Reduce",c:GREEN,t:d.reduce},{l:"Protect",c:AMBER,t:d.protect},{l:"Restore",c:GOLD,t:d.restore}].map((x,j)=>(<div key={j} style={{borderLeft:`2px solid ${x.c}`,paddingLeft:12,marginBottom:j<2?10:0}}><span style={{fontSize:16,color:x.c,letterSpacing:"0.15em",textTransform:"uppercase",fontFamily:FONT}}>{x.l}</span><p style={{fontSize:17,color:"rgba(255,255,255,0.4)",fontFamily:FONT,lineHeight:1.5,marginTop:4}}>{x.t}</p></div>))}
+    <h3 style={{fontFamily:FONT,fontSize:24,color:PURPLE,fontWeight:700,marginBottom:14,letterSpacing:"0.08em"}}>Top drivers of cost today</h3>
+    <p style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,marginBottom:28,fontStyle:"italic",fontWeight:500}}>{di}</p>
+    {td.map((t,i)=>{const d=dm[t.key];const bc=t.load>70?RED:t.load>40?AMBER:TEAL;return(<div key={i} style={{marginBottom:32,padding:26,background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.1)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}><span style={{fontFamily:FONT,fontSize:22,color:TEXT_PRIMARY,fontWeight:600}}>{t.name}</span><span style={{fontFamily:FONT,fontSize:22,color:bc,fontWeight:700}}>{t.load}/100</span></div>
+      <div style={{height:10,background:"rgba(255,255,255,0.1)",borderRadius:5,marginBottom:20}}><div style={{height:"100%",width:`${t.load}%`,background:bc,borderRadius:5,transition:"width 1s"}}/></div>
+      <div style={{display:"flex",gap:14,marginBottom:18}}><span style={{fontSize:19,color:TEXT_TERTIARY,fontFamily:FONT,fontStyle:"italic",fontWeight:500}}>{d?.type}</span><span style={{fontSize:19,color:confColor(t.conf),fontFamily:FONT,fontWeight:600}}>Confidence: {t.conf}</span></div>
+      {d&&[{l:"Reduce",c:TEAL,t:d.reduce},{l:"Protect",c:AMBER,t:d.protect},{l:"Restore",c:PURPLE,t:d.restore}].map((x,j)=>(<div key={j} style={{borderLeft:`5px solid ${x.c}`,paddingLeft:18,marginBottom:j<2?16:0}}><span style={{fontSize:18,color:x.c,letterSpacing:"0.15em",textTransform:"uppercase",fontFamily:FONT,fontWeight:700}}>{x.l}</span><p style={{fontSize:20,color:TEXT_SECONDARY,fontFamily:FONT,lineHeight:1.55,marginTop:8,fontWeight:500}}>{x.t}</p></div>))}
     </div>);})}
-    <h3 style={{fontFamily:FONT,fontSize:18,color:GOLD,fontWeight:500,marginBottom:16,letterSpacing:"0.08em"}}>All seven domains</h3>
-    {dl.map((d,i)=>{const bc=(d.load??0)>70?RED:(d.load??0)>40?AMBER:GREEN;return(<div key={i} style={{marginBottom:10}}>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.55)"}}>{d.name}</span><div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{fontSize:17,color:confColor(d.conf),fontFamily:FONT}}>{d.conf}</span><span style={{fontFamily:FONT,fontSize:17,color:bc}}>{d.load??"-"}</span></div></div>
-      <div style={{height:3,background:"rgba(255,255,255,0.04)",borderRadius:2}}><div style={{height:"100%",width:`${d.load??0}%`,background:bc,borderRadius:2}}/></div>
+    <h3 style={{fontFamily:FONT,fontSize:24,color:PURPLE,fontWeight:700,marginBottom:22,letterSpacing:"0.08em"}}>All seven domains</h3>
+    {dl.map((d,i)=>{const bc=(d.load??0)>70?RED:(d.load??0)>40?AMBER:TEAL;return(<div key={i} style={{marginBottom:18}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}><span style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,fontWeight:600}}>{d.name}</span><div style={{display:"flex",gap:14,alignItems:"center"}}><span style={{fontSize:19,color:confColor(d.conf),fontFamily:FONT,fontWeight:600}}>{d.conf}</span><span style={{fontFamily:FONT,fontSize:20,color:bc,fontWeight:700}}>{d.load??"-"}</span></div></div>
+      <div style={{height:8,background:"rgba(255,255,255,0.1)",borderRadius:4}}><div style={{height:"100%",width:`${d.load??0}%`,background:bc,borderRadius:4}}/></div>
     </div>);})}
-    <div style={{marginTop:24,padding:16,background:BG_CARD,borderRadius:8,border:"1px solid rgba(255,255,255,0.04)",marginBottom:24}}>
-      <h4 style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.5)",fontWeight:500,marginBottom:8}}>How complete is this map?</h4>
-      <p style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.4)",marginBottom:12,lineHeight:1.5}}>Sections skipped or marked "prefer not to answer" are treated as unknown, not zero.</p>
-      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{dl.map((d,i)=>(<span key={i} style={{padding:"3px 10px",borderRadius:3,fontSize:17,fontFamily:FONT,background:"rgba(255,255,255,0.03)",color:confColor(d.conf),border:`1px solid ${confColor(d.conf)}20`}}>{d.name.replace(" State Load","").replace(" Load","")}: {d.conf}</span>))}</div>
+    <div style={{marginTop:36,padding:26,background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.1)",marginBottom:36}}>
+      <h4 style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,fontWeight:700,marginBottom:14}}>How complete is this map?</h4>
+      <p style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,marginBottom:18,lineHeight:1.55,fontWeight:500}}>Sections skipped or marked "prefer not to answer" are treated as unknown, not zero.</p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:14}}>{dl.map((d,i)=>(<span key={i} style={{padding:"8px 16px",borderRadius:6,fontSize:18,fontFamily:FONT,fontWeight:600,background:"rgba(255,255,255,0.08)",color:confColor(d.conf),border:`1.5px solid ${confColor(d.conf)}50`}}>{d.name.replace(" State Load","").replace(" Load","")}: {d.conf}</span>))}</div>
     </div>
-    <div style={{marginBottom:28}}>
-      <h3 style={{fontFamily:FONT,fontSize:18,color:GOLD,fontWeight:500,marginBottom:16,letterSpacing:"0.08em"}}>Reduce. Protect. Restore.</h3>
-      {[{l:"Reduce",c:GREEN,p:["One cost I can reduce is:","One thing I can stop proving is:"]},{l:"Protect",c:AMBER,p:["One support I need to defend is:","One boundary that protects my nervous system is:"]},{l:"Restore",c:GOLD,p:["One part of my design I can honour this week is:","One condition I can adjust to improve fit is:"]}].map((s,i)=>(<div key={i} style={{borderLeft:`2px solid ${s.c}`,paddingLeft:14,marginBottom:16}}><span style={{fontSize:17,color:s.c,letterSpacing:"0.15em",textTransform:"uppercase",fontFamily:FONT}}>{s.l}</span>{s.p.map((p,j)=>(<p key={j} style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.4)",lineHeight:1.6,marginTop:6,fontStyle:"italic"}}>"{p} ________"</p>))}</div>))}
+    <div style={{marginBottom:40}}>
+      <h3 style={{fontFamily:FONT,fontSize:24,color:PURPLE,fontWeight:700,marginBottom:22,letterSpacing:"0.08em"}}>Reduce. Protect. Restore.</h3>
+      {[{l:"Reduce",c:TEAL,p:["One cost I can reduce is:","One thing I can stop proving is:"]},{l:"Protect",c:AMBER,p:["One support I need to defend is:","One boundary that protects my nervous system is:"]},{l:"Restore",c:PURPLE,p:["One part of my design I can honour this week is:","One condition I can adjust to improve fit is:"]}].map((s,i)=>(<div key={i} style={{borderLeft:`5px solid ${s.c}`,paddingLeft:20,marginBottom:24}}><span style={{fontSize:18,color:s.c,letterSpacing:"0.15em",textTransform:"uppercase",fontFamily:FONT,fontWeight:700}}>{s.l}</span>{s.p.map((p,j)=>(<p key={j} style={{fontFamily:FONT,fontSize:19,color:TEXT_SECONDARY,lineHeight:1.6,marginTop:12,fontStyle:"italic",fontWeight:500}}>"{p} ________"</p>))}</div>))}
     </div>
-    <div style={{textAlign:"center",marginBottom:28}}>
+    <div style={{textAlign:"center",marginBottom:40}}>
       <button onClick={()=>{
         const lines=["THE MISFIT TAX LEDGER – Results Summary","",`Available Capacity Today: ${ac??"-"}%`,`Tax Load Index: ${tli??"-"}/100`,"",`Mismatch Cost (design vs environment): ${mc!==null?Math.round(mc):"-"}/100`,`Condition Tax (identity + relational + structural): ${tc!==null?Math.round(tc):"-"}/100`,`Experience Load (trauma): ${el??"-"}/100`,`Current State Load: ${cl??"-"}/100`,"","TOP DRIVERS:"];
         td.forEach((t,i)=>{lines.push(`${i+1}. ${t.name}: ${t.load}/100 (${t.conf} confidence)`);});
@@ -465,28 +482,28 @@ const ResultsScreen=({answers,onRestart})=>{
         dl.forEach(d=>{lines.push(`  ${d.name}: ${d.load??"-"}/100 (${d.conf})`);});
         lines.push("","That wasn't your limit. That was what was left after the tax.","Reduce. Protect. Restore.","","Tanya Hicks · Human Systems Architect · Neurodivergent Empowered");
         copyText(lines.join("\n")).then(ok=>{if(ok){setCopied(true);setTimeout(()=>setCopied(false),2500);}});
-      }} style={{padding:"10px 24px",background:copied?"rgba(58,158,110,0.12)":"rgba(201,168,76,0.08)",border:`1px solid ${copied?GREEN:GOLD_DIM}`,color:copied?GREEN:GOLD,fontFamily:FONT,fontSize:17,cursor:"pointer",borderRadius:4,letterSpacing:"0.08em",transition:"all 0.3s"}}>
+      }} style={{padding:"16px 36px",background:copied?"rgba(91,191,186,0.2)":"rgba(123,107,161,0.18)",border:`2.5px solid ${copied?TEAL:PURPLE_DIM}`,color:copied?TEAL:PURPLE_LIGHT,fontFamily:FONT,fontSize:20,fontWeight:700,cursor:"pointer",borderRadius:8,letterSpacing:"0.08em",transition:"all 0.3s"}}>
         {copied?"Copied ✓":"Copy results summary"}
       </button>
-      <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)",marginTop:8}}>Plain text – paste into notes, journal, or share with your practitioner</p>
+      <p style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,marginTop:14,fontWeight:500}}>Plain text – paste into notes, journal, or share with your practitioner</p>
       <button onClick={()=>{
         const exported={version:"1.0",date:new Date().toISOString().slice(0,10),availableCapacity:ac,taxLoadIndex:tli,domains:dl.map(d=>({name:d.name,load:d.load,confidence:d.conf})),topDrivers:td.map(t=>({name:t.name,load:t.load})),mismatchCost:mc!==null?Math.round(mc):null,conditionTax:tc!==null?Math.round(tc):null};
         const blob=new Blob([JSON.stringify(exported,null,2)],{type:"application/json"});
         const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`misfit-tax-ledger-${exported.date}.json`;a.click();URL.revokeObjectURL(url);
-      }} style={{marginTop:10,padding:"8px 18px",background:"transparent",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.4)",fontFamily:FONT,fontSize:16,cursor:"pointer",borderRadius:4}}>
+      }} style={{marginTop:16,padding:"14px 28px",background:"transparent",border:"2px solid rgba(255,255,255,0.2)",color:TEXT_TERTIARY,fontFamily:FONT,fontSize:19,fontWeight:600,cursor:"pointer",borderRadius:8}}>
         Export data (JSON)
       </button>
     </div>
-    <div style={{marginBottom:32}}>
-      <h3 style={{fontFamily:FONT,fontSize:18,color:GOLD,fontWeight:500,marginBottom:12,letterSpacing:"0.08em"}}>Where to go from here</h3>
-      {td.map((t,i)=>{const d=dm[t.key];if(!d)return null;return(<div key={i} style={{display:"flex",gap:12,marginBottom:10,padding:14,background:BG_CARD,borderRadius:8,border:"1px solid rgba(255,255,255,0.04)",alignItems:"center"}}><div style={{width:36,height:36,borderRadius:"50%",border:`1px solid ${GOLD_DIM}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:FONT,fontSize:16,color:GOLD,flexShrink:0}}>{d.book.num}</div><div><div style={{fontFamily:FONT,fontSize:16,color:GOLD_LIGHT}}>{d.book.title}</div><div style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.35)"}}>{d.book.subtitle}</div></div></div>);})}
+    <div style={{marginBottom:44}}>
+      <h3 style={{fontFamily:FONT,fontSize:24,color:PURPLE,fontWeight:700,marginBottom:18,letterSpacing:"0.08em"}}>Where to go from here</h3>
+      {td.map((t,i)=>{const d=dm[t.key];if(!d)return null;return(<div key={i} style={{display:"flex",gap:18,marginBottom:16,padding:22,background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.1)",alignItems:"center"}}><div style={{width:50,height:50,borderRadius:"50%",border:`2.5px solid ${PURPLE_DIM}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:FONT,fontSize:22,color:PURPLE,fontWeight:700,flexShrink:0}}>{d.book.num}</div><div><div style={{fontFamily:FONT,fontSize:20,color:PURPLE_LIGHT,fontWeight:600}}>{d.book.title}</div><div style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,fontWeight:500}}>{d.book.subtitle}</div></div></div>);})}
     </div>
-    <div style={{textAlign:"center",padding:"24px 0 16px",borderTop:"1px solid rgba(255,255,255,0.04)"}}>
-      <p style={{fontFamily:FONT,fontSize:16,color:"rgba(255,255,255,0.35)",lineHeight:1.6,marginBottom:16,maxWidth:440,margin:"0 auto 16px"}}>This tool is here to make the invisible visible. Not to shame privilege. Not to rank capacity. To stop comparing capacity without context.</p>
-      <p style={{fontFamily:FONT,fontSize:18,color:GOLD_LIGHT,fontStyle:"italic",marginBottom:4}}>That wasn't your limit. That was what was left after the tax.</p>
-      <p style={{fontFamily:FONT,fontSize:17,color:"rgba(255,255,255,0.35)",marginBottom:24}}>Reduce. Protect. Restore.</p>
-      <button onClick={onRestart} style={{padding:"10px 28px",background:"transparent",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.35)",fontFamily:FONT,fontSize:17,cursor:"pointer",borderRadius:4}}>Start again</button>
-      <div style={{marginTop:24,fontSize:17,color:"rgba(255,255,255,0.35)",fontFamily:FONT,lineHeight:1.6}}>Tanya Hicks · Human Systems Architect · Neurodivergent Empowered<br/>Part of the Designed for More series<br/><br/><span style={{fontSize:16,color:"rgba(255,255,255,0.4)"}}>Not medical advice. Not diagnostic. Not for employment decisions. Your answers stay in your browser unless you choose to export.</span></div>
+    <div style={{textAlign:"center",padding:"36px 0 28px",borderTop:"1.5px solid rgba(255,255,255,0.1)"}}>
+      <p style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,lineHeight:1.6,marginBottom:24,maxWidth:500,margin:"0 auto 24px",fontWeight:500}}>This tool is here to make the invisible visible. Not to shame privilege. Not to rank capacity. To stop comparing capacity without context.</p>
+      <p style={{fontFamily:FONT,fontSize:24,color:PURPLE_LIGHT,fontStyle:"italic",marginBottom:10,fontWeight:600}}>That wasn't your limit. That was what was left after the tax.</p>
+      <p style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,marginBottom:36,fontWeight:500}}>Reduce. Protect. Restore.</p>
+      <button onClick={onRestart} style={{padding:"16px 40px",background:"transparent",border:"2px solid rgba(255,255,255,0.2)",color:TEXT_TERTIARY,fontFamily:FONT,fontSize:19,fontWeight:600,cursor:"pointer",borderRadius:8}}>Start again</button>
+      <div style={{marginTop:36,fontSize:19,color:TEXT_DIM,fontFamily:FONT,lineHeight:1.6,fontWeight:500}}>Tanya Hicks · Human Systems Architect · Neurodivergent Empowered<br/>Part of the Designed for More series<br/><br/><span style={{fontSize:18,color:TEXT_DIM}}>Not medical advice. Not diagnostic. Not for employment decisions. Your answers stay in your browser unless you choose to export.</span></div>
     </div>
   </div>);
 };
@@ -523,7 +540,6 @@ function MisfitTaxLedger(){
   </div>);
 }
 
-// FIX #2: Using ReactDOM.render() instead of createRoot
 ReactDOM.render(<MisfitTaxLedger />, document.getElementById("root"));
   </script>
 </body>
