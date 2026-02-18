@@ -1,1 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The Misfit Tax Ledger</title>
 
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body,#root{min-height:100vh;height:100%;}
+    body{background:#0a0d12;color:#fff;font-family:'EB Garamond',Georgia,serif;-webkit-font-smoothing:antialiased;}
+    input[type="range"]{-webkit-appearance:auto;appearance:auto;}
+    input[type="checkbox"]{-webkit-appearance:auto;appearance:auto;}
+    button{font-family:inherit;border:none;background:none;cursor:pointer;}
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:rgba(123,107,161,0.4);border-radius:3px;}
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- React UMD -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+    // BRAND COLORS
+    const PURPLE="#7B6BA1";
+    const PURPLE_LIGHT="#C4B8DC";
+    const PURPLE_DIM="rgba(123,107,161,0.55)";
+    const TEAL="#5BBFBA";
+    const TEAL_LIGHT="#7DD3D0";
+    const BEIGE="#D4C5A0";
+    const PINK="#E52088";
+
+    const BG_DEEP="#0a0d12";
+    const BG_CARD="rgba(18,22,30,0.95)";
+    const FONT="'EB Garamond', Georgia, serif";
+    const SCALE_MAX=4;
+
+    const TEXT_PRIMARY="rgba(255,255,255,0.97)";
+    const TEXT_SECONDARY="rgba(255,255,255,0.88)";
+    const TEXT_TERTIARY="rgba(255,255,255,0.75)";
+    const TEXT_DIM="rgba(255,255,255,0.62)";
+
+    const CATEGORY_DESIGN = "design";
+    const CATEGORY_CONDITIONS = "conditions";
+    const CATEGORY_ACCUMULATED = "accumulated";
+    const CATEGORY_CURRENT = "current";
+
+    // ===== DOMAINS + QUESTIONS (your current build) =====
+    const domains = [
+      {
+        id: "neurological",
+        name: "Neurological Load",
+        subtitle: "Is your nervous system being honoured or overridden?",
+        category: CATEGORY_DESIGN,
+        categoryLabel: "Design – How you're built",
+        intro: "These questions measure whether your environment fits your nervous system – or whether capacity is consumed forcing yourself into conditions that don't match your wiring.",
+        questions: [
+          {id:"Q1.1",type:"likert",text:"How often are you required to stay in sensory conditions that don't fit your nervous system?",hint:"Noise, light, crowding, smells, temperature, textures – places where you can't control the input."},
+          {id:"Q1.2",type:"likert",text:"How often does expectation or instruction trigger stress in your body, even when you agree with what's being asked?",hint:"Not 'do you want to do it?' – does your system brace, resist, freeze, or spike anyway?"},
+          {id:"Q1.3",type:"likert",text:"How often do you notice hunger, fatigue, pain, or emotional overload only after you've already pushed too far?",hint:"Body signals arriving late, or being drowned out until you stop."},
+          {id:"Q1.4",type:"likert",text:"How often do transitions drain you more than the task itself?",hint:"Switching tasks, switching rooms, switching modes, changing plans, being interrupted."},
+          {id:"Q1.5",type:"likert",text:"How often do you suppress regulation needs to stay 'appropriate' or 'functional'?",hint:"Movement, stimming, leaving early, wearing what works for you, reducing sensory input."},
+        ],
+        reduce: "Reduce sensory interference where you can. Stop forcing compliance with environments that don't fit. Interrupt the override cycle before shutdown.",
+        protect: "Guard your pacing. Defend your sensory needs. Protect the routines and spaces that actually regulate your system.",
+        restore: "Restore trust in your body's signals. Stop translating yourself. Let your nervous system run as designed.",
+        book: {title:"UNMASKED",subtitle:"Recognition – See yourself clearly",num:1},
+      },
+
+      {
+        id: "body",
+        name: "Body Load",
+        subtitle: "Is your physical design being respected or forced?",
+        category: CATEGORY_DESIGN,
+        categoryLabel: "Design – How you're built",
+        intro: "These questions measure whether your body is operating within its actual design – or whether capacity is consumed forcing it into conditions that don't match your architecture.",
+        questions: [
+          {id:"Q2.1",type:"likert",text:"How often do you push through physical discomfort or pain to meet normal demands?",hint:"Not heroics – ordinary life requiring override."},
+          {id:"Q2.2",type:"likert",text:"How often do your environments assume a body you don't have?",hint:"Standing, sitting, commuting, carrying, repetitive movement, long hours, limited breaks."},
+          {id:"Q2.3",type:"likert",text:"How often does your body feel unreliable under everyday load?",hint:"Instability, easy strain, joint issues, sudden pain, fatigue spikes, flare risk."},
+          {id:"Q2.4",type:"likert",text:"How often do you need recovery time after 'ordinary' tasks?",hint:"Errands, social time, cleaning, a workday – things others bounce back from quickly."},
+          {id:"Q3.1",type:"likert",text:"How predictable is your energy across days?",hint:"Can you plan around your energy, or does it change without warning?",reverse:true,labels:["Very predictable","Mostly predictable","Mixed","Often unpredictable","Highly unpredictable"]},
+          {id:"Q3.2",type:"likert",text:"How often does sleep leave you under-resourced the next day?",hint:"Insomnia, disrupted sleep, unrefreshing sleep, early waking, oversleeping without restoration."},
+          {id:"Q3.3",type:"likert",text:"How often does managing symptoms consume energy before your day even begins?",hint:"Pain, dizziness, fatigue, inflammation, hormones, temperature, nausea – managing the body to function."},
+          {id:"Q3.4",type:"likert",text:"How often does stress show up as physical symptoms that reduce your capacity?",hint:"GI issues, headaches, migraines, flare-ups, immune symptoms, shutdown, fatigue spikes."},
+          {id:"Q3.5",type:"likert",text:"If applicable, how much does your cycle or hormonal phase change what you can do?",hint:"Choose 'Prefer not to answer' if not applicable.",labels:["Minimal","Mild","Moderate","Significant","Severe"]},
+        ],
+        reduce: "Stop forcing your body into schedules, positions, and demands it wasn't built for. Reduce the gap between what's being asked and what can be sustained.",
+        protect: "Protect your rest. Protect movement that works for your design. Protect the energy boundaries your body is already trying to enforce.",
+        restore: "Restore fit between your body's actual architecture and your daily conditions. Let your body's intelligence run the show.",
+        book: {title:"UNMASKED",subtitle:"Recognition – See yourself clearly",num:1},
+      },
+
+      {
+        id: "processing",
+        name: "Processing & Interface Load",
+        subtitle: "How much effort goes into translating yourself for the world?",
+        category: CATEGORY_DESIGN,
+        categoryLabel: "Design – How you're built",
+        intro: "This measures the cost of interfacing – translating thought into acceptable output, navigating pace and ambiguity, managing cognitive load that others don't see. This is not about intelligence. It's about bandwidth lost through translation.",
+        questions: [
+          {id:"Q4.1",type:"likert",text:"How often do you need more time than others to understand, decide, or respond?",hint:"Needing to re-read, re-hear, ask clarifying questions, or sit with information before you can act."},
+          {id:"Q4.2",type:"likert",text:"How often does communication take significant effort, even when the topic is simple?",hint:"Finding words, interpreting tone, tracking social rules, translating your thinking into expected language."},
+          {id:"Q4.3",type:"likert",text:"How often do you perform competence to avoid judgement or consequences?",hint:"Looking calm, organised, social, fast, fine – even when you're working much harder internally."},
+          {id:"Q4.4",type:"likert",text:"When you exceed capacity, how often do you go offline?",hint:"Shutdown, meltdown, blankness, dissociation, sudden exhaustion, losing speech, needing to disappear."},
+          {id:"Q4.5",type:"likert",text:"How often do you 'get through' the day and pay for it afterwards?",hint:"Crash, illness flare, emotional fallout, reduced function the next day or longer."},
+          {id:"Q4b.1",type:"likert",text:"How often does the pace of your environment exceed the pace at which you can process comfortably?",hint:"Meetings, conversations, deadlines, rapid decisions, constant input."},
+          {id:"Q4b.2",type:"likert",text:"How often do you have to simplify, compress, or edit your thinking to be understood?",hint:"Leaving out nuance, skipping steps, translating insight into 'acceptable' language."},
+          {id:"Q4b.3",type:"likert",text:"How often does ambiguity or unclear expectation drain you more than the task itself?",hint:"Vague instructions, shifting goals, unspoken rules, 'just figure it out.'"},
+          {id:"Q4b.4",type:"likert",text:"How often do you feel mentally overloaded even when you haven't done much externally?",hint:"Thinking, tracking, anticipating, holding multiple variables internally."},
+          {id:"Q4b.5",type:"likert",text:"How often does decision-making itself exhaust you?",hint:"Not the decision outcome – the process of weighing, prioritising, choosing."},
+        ],
+        reduce: "Reduce unnecessary cognitive translation. Clarify expectations. Slow the interface, not yourself.",
+        protect: "Protect thinking time, preparation time, and low-input spaces.",
+        restore: "Restore conditions where your natural processing pace is respected and usable.",
+        book: {title:"UNTANGLED",subtitle:"Clarity – Separate what's yours from what isn't",num:2},
+      },
+
+      {
+        id: "identity",
+        name: "Identity Load",
+        subtitle: "Are you allowed to be who you are?",
+        category: CATEGORY_CONDITIONS,
+        categoryLabel: "Conditions – What you're navigating",
+        intro: "This measures friction, penalty, concealment, and translation load. Not identity itself. Identity taxes compound – they don't just add.",
+        questions: [
+          {id:"Q5.1",type:"likert",text:"How often does being yourself carry real consequences?",hint:"Safety, judgement, work risk, service access, family backlash, social punishment."},
+          {id:"Q5.2",type:"likert",text:"How often do you have to translate yourself to be treated fairly?",hint:"Code-switching, softening, explaining, masking difference, pre-empting misunderstanding."},
+          {id:"Q5.3",type:"likert",text:"How often do you hide parts of yourself to avoid fallout?",hint:"Identity, disability, neurotype, culture, finances, needs – whatever you can't safely show."},
+          {id:"Q5.4",type:"likert",text:"How often do systems treat your life as 'non-standard' and make you do extra work to fit?",hint:"Forms, assumptions, policies, services, workplaces built for a default person."},
+          {id:"Q5.5",type:"likert",text:"How often are you doing unpaid labour just to exist safely and access what you need?",hint:"Advocacy, educating, correcting assumptions, paperwork, defending, bridging, justifying."},
+        ],
+        reduce: "Choose environments that accept you where possible. Reduce performance load. Stop attacking yourself for design differences the world refuses to accommodate.",
+        protect: "Protect spaces where all of you is welcome. Protect community that nourishes you. Protect your right to stop explaining yourself.",
+        restore: "Restore access to your full identity without cost. Restore belonging. Stop comparing capacity to people who started at a different baseline.",
+        book: {title:"UNTANGLED",subtitle:"Clarity – Separate what's yours from what isn't",num:2},
+      },
+
+      {
+        id: "relational",
+        name: "Relational Load",
+        subtitle: "Are your relationships sustaining or draining you?",
+        category: CATEGORY_CONDITIONS,
+        categoryLabel: "Conditions – What you're navigating",
+        intro: "Who holds you – and who are you holding? These questions measure whether the people in your life are sharing the load or adding to it.",
+        questions: [
+          {id:"Q6.1",type:"likert",text:"How often are you giving more than you receive in your close relationships?",hint:"Emotional labour, practical help, problem-solving, regulation, availability."},
+          {id:"Q6.2",type:"likert",text:"How safe is it for you to say no without consequence?",hint:"Not 'do you feel comfortable?' – what actually happens when you refuse?",reverse:true,labels:["Very safe","Mostly safe","Sometimes safe","Rarely safe","Not safe at all"]},
+          {id:"Q6.3",type:"likert",text:"How often do you make yourself smaller to keep connection?",hint:"Suppressing needs, editing your truth, swallowing conflict, staying agreeable to stay safe."},
+          {id:"Q6.4",type:"likert",text:"How often are you carrying responsibility for other people's wellbeing?",hint:"Children, partner, family, workplace, community – being the one who holds it together."},
+          {id:"Q6.5",type:"likert",text:"How much relational stress is taking up your bandwidth right now?",hint:"Conflict, tension, instability, emotional unpredictability, walking on eggshells."},
+        ],
+        reduce: "Reduce the regulatory load you carry for others. Interrupt patterns of over-functioning. Name what's harmful.",
+        protect: "Protect relationships that give, not just take. Protect your right to say no. Protect reciprocity.",
+        restore: "Restore your capacity to receive. Restore balance. Stop being the one who holds everything together alone.",
+        book: {title:"UNBOUND",subtitle:"Sovereignty – Claim authority over your own life",num:4},
+      },
+
+      {
+        id: "structural",
+        name: "Structural Load",
+        subtitle: "Are your conditions supporting or consuming you?",
+        category: CATEGORY_CONDITIONS,
+        categoryLabel: "Conditions – What you're navigating",
+        intro: "Not your character, your discipline, or your effort – your actual structural reality.",
+        questions: [
+          {id:"Q7.1",type:"likert",text:"How much energy goes into navigating systems instead of living your life?",hint:"Forms, portals, calls, waitlists, follow-up, appointments, admin, services."},
+          {id:"Q7.2",type:"likert",text:"How well does your housing support your nervous system and body?",hint:"Noise, privacy, safety, light, temperature, crowding, predictability.",reverse:true,labels:["Supports very well","Mostly supports","Mixed","Mostly doesn't","Not at all"]},
+          {id:"Q7.3",type:"likert",text:"How sustainable is your work or primary role for the way you're built?",hint:"Pacing, flexibility, autonomy, sensory/social demands, recovery time, predictability.",reverse:true,labels:["Very sustainable","Mostly sustainable","Mixed","Mostly unsustainable","Not sustainable"]},
+          {id:"Q7.4",type:"likert",text:"How heavy is the access and transport load in your week?",hint:"Commute time, cost, sensory load, driving fatigue, public transport strain, reliance on others."},
+          {id:"Q7.5",type:"likert",text:"How hard is it to access healthcare or professional support you actually trust?",hint:"Cost, wait times, distance, availability, past harm, being dismissed, needing to educate providers."},
+        ],
+        reduce: "Remove structural interference where possible. Reduce bureaucratic load. Stop blaming your capacity for environmental failures.",
+        protect: "Protect what's working in your environment – even small things. Defend conditions that support you.",
+        restore: "Restore fit between your life and your conditions. Build toward environments that hold you.",
+        book: {title:"UNBURDENED",subtitle:"Safety – Put down what was never yours to carry",num:3},
+      },
+
+      {
+        id: "trauma",
+        name: "Trauma Load",
+        subtitle: "What impact are you still carrying?",
+        category: CATEGORY_ACCUMULATED,
+        categoryLabel: "Accumulated – What built up in the gap",
+        intro: "These questions measure ongoing impact – not events. You will not be asked what happened. Only what it's costing you now.",
+        questions: [
+          {id:"Q8.1",type:"likert",text:"How much energy goes into managing the ongoing effects of past experiences?",hint:"Hypervigilance, shutdown, anxiety, dissociation, distrust, body responses, emotional flooding."},
+          {id:"Q8.2",type:"likert",text:"How often do old survival patterns activate even when you don't want them to?",hint:"People-pleasing, perfectionism, overworking, scanning for threat, control, bracing."},
+          {id:"Q8.3",type:"likert",text:"How safe does your body feel most days, regardless of logic?",hint:"This is about felt safety, not whether you can explain it.",reverse:true,labels:["Very safe","Mostly safe","Sometimes safe","Rarely safe","Not safe"]},
+          {id:"Q8.4",type:"likert",text:"How often do triggers reduce your capacity for hours or days?",hint:"Not just feeling upset – reduced function, reduced access to self, longer recovery."},
+          {id:"Q8.5",type:"likert",text:"How much unresolved grief is taking up internal space right now?",hint:"Deaths, relationship loss, loss of health, loss of identity, ambiguous loss."},
+        ],
+        reduce: "Reduce self-attack. Stop blaming yourself for adaptations that kept you alive.",
+        protect: "Protect your stability. Don't let urgency push you into healing work before the ground is safe.",
+        restore: "Restore understanding – the design was never wrong. Restore compassion for how you survived.",
+        book: {title:"UNHIDDEN",subtitle:"Softness – Be seen without armour",num:5},
+      },
+
+      {
+        id: "adaptation",
+        name: "Adaptation & Coping Load",
+        subtitle: "What strategies are still running – and what do they cost?",
+        category: CATEGORY_ACCUMULATED,
+        categoryLabel: "Accumulated – What built up in the gap",
+        intro: "This measures the cost of strategies that helped you survive when conditions couldn't be changed – and may still be extracting capacity now.",
+        questions: [
+          {id:"Q8b.1",type:"likert",text:"How often are you relying on coping strategies just to get through ordinary life?",hint:"Pushing, numbing, pleasing, over-preparing, controlling, bracing."},
+          {id:"Q8b.2",type:"likert",text:"How often do you feel you're managing yourself rather than living?",hint:"Constant self-monitoring, self-correction, emotional regulation to stay functional."},
+          {id:"Q8b.3",type:"likert",text:"How often do you keep parts of yourself 'on hold' to maintain stability?",hint:"Desires, rest, expression, truth, needs postponed indefinitely."},
+          {id:"Q8b.4",type:"likert",text:"How often do survival patterns activate even when conditions are relatively safe?",hint:"Automatic responses that no longer match the present."},
+          {id:"Q8b.5",type:"likert",text:"How much energy goes into preventing collapse rather than building capacity?",hint:"Staying afloat versus moving forward."},
+          {id:"Q8b.6",type:"likert",text:"How often do you use something to manage your state because your environment doesn't support you naturally?",hint:"This might include caffeine, alcohol, cannabis, medication, food, screens, or work – anything that helps you sleep, focus, calm down, push through, or switch off."},
+          {id:"Q8b.7",type:"likert",text:"How much energy goes into managing the downstream effects of what you use to cope?",hint:"Hangovers, medication side effects, withdrawal, crashes, guilt, planning around use, or recovery time."},
+        ],
+        reduce: "Reduce unnecessary self-management. Name which strategies are no longer required.",
+        protect: "Protect what kept you intact. Do not rip out coping without replacing conditions.",
+        restore: "Restore access to parts of yourself that were parked for survival.",
+        book: {title:"UNHIDDEN",subtitle:"Softness – Be seen without armour",num:5},
+      },
+
+      {
+        id: "current",
+        name: "Current Capacity",
+        subtitle: "What's actually available right now?",
+        category: CATEGORY_CURRENT,
+        categoryLabel: "Current – Where you are today",
+        intro: "This fluctuates. Everything else creates the container for how much fluctuation you can absorb.",
+        questions: [
+          {id:"Q9.1",type:"slider100",text:"Where is your capacity today, as a percentage of your 'good day' self?",hint:"Drag to where you actually are. This is the anchor for your results.",required:true},
+          {id:"Q9.2",type:"season",text:"Which season best describes you right now?",options:[
+            {label:"Stable and resourced",value:0},
+            {label:"Expanding",value:1},
+            {label:"Rebuilding",value:2},
+            {label:"Holding it together",value:3},
+            {label:"Crisis",value:4},
+          ]},
+          {id:"Q9.3",type:"likert",text:"How acute are your current stressors right now?",hint:"Time pressure, conflict, deadlines, financial stress, health flare, housing stress."},
+          {id:"Q9.4",type:"likert",text:"How supported do you feel right now in practical and emotional terms?",hint:"Not 'people care' – actual support that reduces load.",reverse:true,labels:["Very supported","Mostly supported","Somewhat","Barely","Not supported at all"]},
+          {id:"Q9.5",type:"likert",text:"How much bandwidth is being consumed by one or two issues you cannot ignore?",hint:"The thing sitting on top of everything else."},
+        ],
+        reduce: "Triage. Not everything needs attention now. Reduce what's acute. Drop what's not essential.",
+        protect: "Protect whatever is still working – even small things. They're load-bearing.",
+        restore: "Restore one thing. Not everything. One domain where fit can improve. Start there.",
+        book: {title:"UNCONTAINED",subtitle:"Aliveness – Full expression",num:6},
+      },
+    ];
+
+    // Helpers
+    function mean(vals){ const v=vals.filter(x=>x!==null&&x!==undefined); return v.length?v.reduce((a,b)=>a+b,0)/v.length:null; }
+    function to100(a){ return a===null?null:Math.round((a/SCALE_MAX)*100); }
+    function compRate(ids, ans){ return ids.filter(id=>ans[id]!==undefined&&ans[id]!==null).length/ids.length; }
+    function confLabel(r){ return r>=0.85?"High":r>=0.6?"Moderate":r>=0.35?"Low":"Very low"; }
+    function confColor(l){ return l==="High"?TEAL:l==="Moderate"?BEIGE:PINK; }
+    function loadColor(load){ if(load===null) return TEXT_DIM; return load>70?PINK:load>40?BEIGE:TEAL; }
+
+    const questionById = {};
+    domains.forEach(d=>d.questions.forEach(q=>{ questionById[q.id]=q; }));
+
+    function score(answers){
+      const g = ids => ids.map(id=>{
+        const v=answers[id];
+        if(v===null||v===undefined||typeof v!=="number") return null;
+        const q=questionById[id];
+        if(q?.type==="likert" && q?.reverse) return SCALE_MAX - v;
+        return v;
+      });
+
+      const neuroQ=["Q1.1","Q1.2","Q1.3","Q1.4","Q1.5"];
+      const bodyQ=["Q2.1","Q2.2","Q2.3","Q2.4","Q3.1","Q3.2","Q3.3","Q3.4","Q3.5"];
+      const procQ=["Q4.1","Q4.2","Q4.3","Q4.4","Q4.5","Q4b.1","Q4b.2","Q4b.3","Q4b.4","Q4b.5"];
+      const identQ=["Q5.1","Q5.2","Q5.3","Q5.4","Q5.5"];
+      const relQ=["Q6.1","Q6.2","Q6.3","Q6.4","Q6.5"];
+      const structQ=["Q7.1","Q7.2","Q7.3","Q7.4","Q7.5"];
+      const traumaQ=["Q8.1","Q8.2","Q8.3","Q8.4","Q8.5"];
+      const adaptQ=["Q8b.1","Q8b.2","Q8b.3","Q8b.4","Q8b.5","Q8b.6","Q8b.7"];
+      const currQ=["Q9.2","Q9.3","Q9.4","Q9.5"];
+
+      const neuroL=to100(mean(g(neuroQ)));
+      const bodyL=to100(mean(g(bodyQ)));
+      const procL=to100(mean(g(procQ)));
+      const identL=to100(mean(g(identQ)));
+      const relL=to100(mean(g(relQ)));
+      const structL=to100(mean(g(structQ)));
+      const traumaL=to100(mean(g(traumaQ)));
+      const adaptL=to100(mean(g(adaptQ)));
+      const currL=to100(mean(g(currQ)));
+
+      const designLoads=[neuroL,bodyL,procL].filter(v=>v!==null);
+      const mismatchCost=designLoads.length?Math.round(mean(designLoads)):null;
+
+      const condLoads=[identL,relL,structL].filter(v=>v!==null);
+      const taxCost=condLoads.length?Math.round(mean(condLoads)):null;
+
+      const accLoads=[traumaL,adaptL].filter(v=>v!==null);
+      const accumulatedCost=accLoads.length?Math.round(mean(accLoads)):null;
+
+      const ac=(answers["Q9.1"]!==null && answers["Q9.1"]!==undefined)?answers["Q9.1"]:null;
+
+      const dl=[
+        {key:"neurological",name:"Neurological",load:neuroL,conf:confLabel(compRate(neuroQ,answers)),category:CATEGORY_DESIGN},
+        {key:"body",name:"Body",load:bodyL,conf:confLabel(compRate(bodyQ,answers)),category:CATEGORY_DESIGN},
+        {key:"processing",name:"Processing & Interface",load:procL,conf:confLabel(compRate(procQ,answers)),category:CATEGORY_DESIGN},
+        {key:"identity",name:"Identity",load:identL,conf:confLabel(compRate(identQ,answers)),category:CATEGORY_CONDITIONS},
+        {key:"relational",name:"Relational",load:relL,conf:confLabel(compRate(relQ,answers)),category:CATEGORY_CONDITIONS},
+        {key:"structural",name:"Structural",load:structL,conf:confLabel(compRate(structQ,answers)),category:CATEGORY_CONDITIONS},
+        {key:"trauma",name:"Trauma",load:traumaL,conf:confLabel(compRate(traumaQ,answers)),category:CATEGORY_ACCUMULATED},
+        {key:"adaptation",name:"Adaptation & Coping",load:adaptL,conf:confLabel(compRate(adaptQ,answers)),category:CATEGORY_ACCUMULATED},
+        {key:"current",name:"Current State",load:currL,conf:confLabel(compRate(currQ,answers)),category:CATEGORY_CURRENT},
+      ];
+
+      const td=[...dl].filter(d=>d.load!==null && d.category!==CATEGORY_CURRENT).sort((a,b)=>b.load-a.load).slice(0,3);
+
+      const all=dl.map(d=>d.load).filter(v=>v!==null);
+      const tli=all.length?Math.round(all.reduce((a,b)=>a+b,0)/all.length):null;
+
+      let di="";
+      if(td.length){
+        const t=td[0];
+        if(t.category===CATEGORY_DESIGN) di="Your highest cost is mismatch: your design running in conditions that weren't built for it.";
+        else if(t.category===CATEGORY_CONDITIONS) di="Your highest cost is tax: conditions extracting capacity before life even starts.";
+        else if(t.category===CATEGORY_ACCUMULATED) di="Your highest cost is accumulated: what survival required and what it's still charging.";
+      }
+
+      return { availableCapacity: ac, taxLoadIndex: tli, mismatchCost, taxCost, accumulatedCost, currentLoad: currL, domainLoads: dl, topDrivers: td, driverInterpretation: di };
+    }
+
+    // Background
+    const GeodesicBg = () => {
+      const stripes = useMemo(() => Array.from({length: 24}, () => ({
+        l: `${Math.random() * 100}%`,
+        t: `${Math.random() * 100}%`,
+        h: `${20 + Math.random() * 60}px`,
+        r: Math.random() * 360,
+        o: 0.08 + Math.random() * 0.08
+      })), []);
+      return (
+        <div style={{position:"fixed",inset:0,zIndex:0,overflow:"hidden",pointerEvents:"none"}}>
+          <div style={{position:"absolute",inset:0,background:`radial-gradient(ellipse at 30% 20%,rgba(91,191,186,0.06) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(91,191,186,0.04) 0%,transparent 50%),radial-gradient(ellipse at 90% 30%,rgba(123,107,161,0.03) 0%,transparent 40%),${BG_DEEP}`}}/>
+          {stripes.map((s,i)=>(
+            <div key={i} style={{position:"absolute",left:s.l,top:s.t,width:1,height:s.h,background:`linear-gradient(to bottom,transparent,rgba(91,191,186,0.3),transparent)`,transform:`rotate(${s.r}deg)`,opacity:s.o}}/>
+          ))}
+        </div>
+      );
+    };
+
+    const ProgressBar = ({current,total}) => (
+      <div style={{display:"flex",gap:5,padding:"0 4px",marginBottom:24}}>
+        {Array.from({length:total},(_,i)=>(
+          <div key={i} style={{flex:1,height:5,borderRadius:3,background:i<current?PURPLE:i===current?"rgba(123,107,161,0.6)":"rgba(255,255,255,0.15)"}}/>
+        ))}
+      </div>
+    );
+
+    const SkipBtn = ({onSkip}) => (
+      <button type="button" onClick={onSkip} style={{marginTop:12,padding:"12px 18px",color:TEXT_DIM,fontFamily:FONT,fontSize:18,textDecoration:"underline"}}>
+        Prefer not to answer
+      </button>
+    );
+
+    const LikertQ = ({question,value,onChange,onSkip}) => {
+      const labels = question.labels || ["Never","Occasionally","Often","Very often","Almost always"];
+      return (
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {labels.map((l,i)=>(
+            <button key={i} onClick={()=>onChange(i)} style={{
+              padding:"14px 20px",
+              border:`2px solid ${value===i?PURPLE:"rgba(255,255,255,0.18)"}`,
+              borderRadius:10,
+              background:value===i?"rgba(123,107,161,0.18)":"rgba(255,255,255,0.04)",
+              color:value===i?PURPLE_LIGHT:TEXT_SECONDARY,
+              fontFamily:FONT,fontSize:19,fontWeight:value===i?600:500,textAlign:"left"
+            }}>
+              <span style={{opacity:0.55,marginRight:12,fontSize:18,fontWeight:600}}>{i}</span>{l}
+            </button>
+          ))}
+          <SkipBtn onSkip={onSkip}/>
+        </div>
+      );
+    };
+
+    const SeasonQ = ({question,value,onChange,onSkip}) => (
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {question.options.map((o,i)=>(
+          <button key={i} onClick={()=>onChange(o.value)} style={{
+            padding:"14px 20px",
+            border:`2px solid ${value===o.value?PURPLE:"rgba(255,255,255,0.18)"}`,
+            borderRadius:10,
+            background:value===o.value?"rgba(123,107,161,0.18)":"rgba(255,255,255,0.04)",
+            color:value===o.value?PURPLE_LIGHT:TEXT_SECONDARY,
+            fontFamily:FONT,fontSize:19,fontWeight:value===o.value?600:500,textAlign:"left"
+          }}>
+            {o.label}
+          </button>
+        ))}
+        <SkipBtn onSkip={onSkip}/>
+      </div>
+    );
+
+    const Slider100Q = ({question,value,onChange}) => {
+      const isSet=value!==null && value!==undefined;
+      const val=isSet?value:50;
+      const c=!isSet?"rgba(255,255,255,0.4)":val>=70?TEAL:val>=40?BEIGE:PINK;
+      return (
+        <div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
+            <span style={{fontFamily:FONT,fontSize:52,color:c,fontWeight:700}}>{isSet?`${val}%`:"–"}</span>
+          </div>
+          {!isSet && <p style={{textAlign:"center",fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,marginBottom:12,fontStyle:"italic"}}>Drag to set your number</p>}
+          <input type="range" min={0} max={100} value={val} onChange={e=>onChange(parseInt(e.target.value))} style={{width:"100%",accentColor:isSet?PURPLE:"rgba(255,255,255,0.3)"}}/>
+          <div style={{display:"flex",justifyContent:"space-between",marginTop:10}}>
+            <span style={{fontFamily:FONT,fontSize:17,color:TEXT_TERTIARY,fontWeight:500}}>0% – Empty</span>
+            <span style={{fontFamily:FONT,fontSize:17,color:TEXT_TERTIARY,fontWeight:500}}>100% – Good day</span>
+          </div>
+        </div>
+      );
+    };
+
+    const QuestionBlock = ({question,value,onChange,onSkip}) => {
+      const skipped=value===null;
+      return (
+        <div style={{marginBottom:28,padding:"24px 26px 22px",borderRadius:14,background:BG_CARD,border:`1.5px solid ${skipped?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.12)"}`,opacity:skipped?0.5:1}}>
+          <p style={{fontFamily:FONT,fontSize:20,color:TEXT_PRIMARY,lineHeight:1.5,marginBottom:question.hint?8:16,fontWeight:600}}>
+            {question.text}{question.required && <span style={{color:PINK,marginLeft:5}}>*</span>}
+          </p>
+          {question.hint && <p style={{fontFamily:FONT,fontSize:18,color:TEXT_TERTIARY,marginBottom:18,fontStyle:"italic",lineHeight:1.5}}>{question.hint}</p>}
+          {skipped && (
+            <button type="button" onClick={()=>onChange(undefined)} style={{padding:"12px 22px",background:"rgba(255,255,255,0.08)",border:"1.5px solid rgba(255,255,255,0.2)",borderRadius:8,color:TEXT_SECONDARY,fontFamily:FONT,fontSize:18,fontWeight:500}}>
+              Answer this question
+            </button>
+          )}
+          {!skipped && question.type==="likert" && <LikertQ question={question} value={value} onChange={onChange} onSkip={onSkip}/>}
+          {!skipped && question.type==="season" && <SeasonQ question={question} value={value} onChange={onChange} onSkip={onSkip}/>}
+          {!skipped && question.type==="slider100" && <Slider100Q question={question} value={value} onChange={onChange}/>}
+        </div>
+      );
+    };
+
+    const copyText = async (text) => {
+      try { await navigator.clipboard.writeText(text); return true; }
+      catch { return false; }
+    };
+
+    // Screens
+    const WelcomeScreen = ({onStart}) => {
+      const [agreed,setAgreed]=useState(false);
+      return (
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",minHeight:"100vh",padding:"48px 36px 36px",textAlign:"center"}}>
+          <h1 style={{fontFamily:FONT,fontSize:"clamp(36px,7vw,56px)",fontWeight:500,marginBottom:16}}>The Misfit Tax Ledger</h1>
+          <p style={{fontFamily:FONT,fontSize:22,color:TEAL,fontStyle:"italic",marginBottom:40,maxWidth:560}}>What is this life actually costing you?</p>
+
+          <div style={{background:BG_CARD,border:"1px solid rgba(91,191,186,0.25)",borderRadius:16,padding:"32px 36px",maxWidth:600,marginBottom:32,textAlign:"left"}}>
+            <h2 style={{fontFamily:FONT,fontSize:26,fontWeight:500,marginBottom:20}}>This is not an assessment.</h2>
+            <p style={{fontFamily:FONT,fontSize:19,color:TEXT_SECONDARY,lineHeight:1.7,marginBottom:16}}>This ledger measures <strong style={{color:"#fff"}}>cost, load, and fit</strong> — never worth, discipline, or healthiness.</p>
+            <p style={{fontFamily:FONT,fontSize:19,color:TEXT_SECONDARY,lineHeight:1.7,marginBottom:16}}>Every question asks: <em style={{color:TEAL}}>"Given how you're built, what is this costing you?"</em></p>
+            <p style={{fontFamily:FONT,fontSize:19,color:TEXT_SECONDARY,lineHeight:1.7,marginBottom:16}}>There are no right or wrong answers. No diagnosis. No implied failures. Just visibility.</p>
+            <div style={{borderTop:"1px solid rgba(255,255,255,0.1)",paddingTop:20,marginTop:20}}>
+              <p style={{fontFamily:FONT,fontSize:17,color:TEXT_TERTIARY,lineHeight:1.6,marginBottom:8}}><span style={{color:TEAL,fontWeight:600}}>9 domains</span> · ~55 questions · 25–35 minutes</p>
+              <p style={{fontFamily:FONT,fontSize:17,color:TEXT_TERTIARY,lineHeight:1.6}}>Every question can be skipped. Your answers stay in your browser unless you export.</p>
+            </div>
+          </div>
+
+          <label style={{display:"flex",alignItems:"center",gap:14,cursor:"pointer",marginBottom:28,fontFamily:FONT,fontSize:18,color:TEXT_SECONDARY,fontWeight:500}}>
+            <input type="checkbox" checked={agreed} onChange={e=>setAgreed(e.target.checked)} style={{accentColor:TEAL,width:20,height:20}}/>
+            I understand this maps the gap, not me.
+          </label>
+
+          <button onClick={agreed?onStart:undefined} style={{
+            padding:"18px 56px",
+            background:agreed?"rgba(91,191,186,0.15)":"transparent",
+            border:`2px solid ${agreed?TEAL:"rgba(255,255,255,0.15)"}`,
+            color:agreed?TEAL_LIGHT:"rgba(255,255,255,0.25)",
+            fontFamily:FONT,fontSize:20,fontWeight:600,letterSpacing:"0.12em",
+            cursor:agreed?"pointer":"default",borderRadius:10
+          }}>
+            BEGIN
+          </button>
+
+          <div style={{marginTop:48,fontSize:16,color:TEXT_DIM,fontFamily:FONT,fontWeight:500,lineHeight:1.6}}>
+            Tanya Hicks · Human Systems Architect<br/>Part of the Designed for More series
+          </div>
+        </div>
+      );
+    };
+
+    const DomainScreen = ({domain, domainIndex, answers, setAnswers, onNext, onBack}) => {
+      const completed = domain.questions.filter(q => answers[q.id] !== undefined).length;
+      const answered = domain.questions.filter(q => answers[q.id] !== undefined && answers[q.id] !== null).length;
+      const total = domain.questions.length;
+      const low = answered > 0 && answered < Math.ceil(total * 0.35);
+
+      const skip = useCallback(id => { setAnswers(p => ({...p, [id]: null})); }, [setAnswers]);
+      const ans = useCallback((id, val) => { setAnswers(p => ({...p, [id]: val})); }, [setAnswers]);
+
+      const canProceed = domainIndex !== 8 || (answers["Q9.1"] !== undefined && answers["Q9.1"] !== null);
+
+      const catColor = domain.category === CATEGORY_DESIGN ? PURPLE :
+                       domain.category === CATEGORY_CONDITIONS ? TEAL :
+                       domain.category === CATEGORY_ACCUMULATED ? BEIGE : TEXT_TERTIARY;
+
+      return (
+        <div style={{minHeight:"100vh",padding:"32px 28px",maxWidth:680,margin:"0 auto"}}>
+          <ProgressBar current={domainIndex} total={9}/>
+          <div style={{display:"inline-block",padding:"6px 14px",borderRadius:5,marginBottom:16,background:`${catColor}18`,border:`1.5px solid ${catColor}40`,fontSize:16,fontWeight:600,letterSpacing:"0.15em",textTransform:"uppercase",color:catColor,fontFamily:FONT}}>
+            {domain.categoryLabel}
+          </div>
+          <h2 style={{fontFamily:FONT,fontSize:"clamp(26px,5vw,38px)",fontWeight:600,color:PURPLE_LIGHT,marginBottom:10,lineHeight:1.3}}>{domain.name}</h2>
+          <p style={{fontFamily:FONT,fontSize:20,color:TEXT_SECONDARY,marginBottom:12,fontStyle:"italic",fontWeight:500}}>{domain.subtitle}</p>
+          <p style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,marginBottom:32,lineHeight:1.6,fontWeight:500}}>{domain.intro}</p>
+
+          {domain.questions.map(q => (
+            <QuestionBlock key={q.id} question={q} value={answers[q.id]} onChange={val => ans(q.id, val)} onSkip={() => skip(q.id)}/>
+          ))}
+
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:24,marginBottom:12,padding:"0 4px"}}>
+            <span style={{fontFamily:FONT,fontSize:17,color:TEXT_TERTIARY,fontWeight:600}}>{completed}/{total} completed</span>
+            {low && <span style={{fontFamily:FONT,fontSize:17,color:BEIGE,fontStyle:"italic"}}>Low completion – results will show low confidence</span>}
+          </div>
+
+          <div style={{display:"flex",gap:16,marginTop:16,marginBottom:48}}>
+            {domainIndex > 0 && (
+              <button onClick={onBack} style={{flex:1,padding:"16px 0",border:"2px solid rgba(255,255,255,0.18)",color:TEXT_TERTIARY,borderRadius:8,fontFamily:FONT,fontSize:18,fontWeight:600}}>
+                ← Back
+              </button>
+            )}
+            <button onClick={canProceed?onNext:undefined} style={{
+              flex:2,padding:"16px 0",
+              border:`2.5px solid ${canProceed?PURPLE:"rgba(255,255,255,0.1)"}`,
+              color:canProceed?PURPLE_LIGHT:"rgba(255,255,255,0.25)",
+              borderRadius:8,fontFamily:FONT,fontSize:18,fontWeight:700,letterSpacing:"0.1em",
+              cursor:canProceed?"pointer":"default"
+            }}>
+              {domainIndex === 8 ? (canProceed ? "See my results →" : "Capacity slider required") : "Next domain →"}
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    const ResultsScreen = ({answers, onRestart}) => {
+      const [copied,setCopied]=useState(false);
+      const r = score(answers);
+      const {availableCapacity: ac, taxLoadIndex: tli, mismatchCost: mc, taxCost: tc, accumulatedCost: acc, domainLoads: dl, topDrivers: td, driverInterpretation: di} = r;
+
+      const cc = ac >= 70 ? TEAL : ac >= 40 ? BEIGE : PINK;
+      const cLine = ac >= 70 ? "You have usable capacity today. The ledger shows where it's being spent."
+                : ac >= 40 ? "You are functioning, but a meaningful portion of your capacity is being consumed."
+                : "What looks like low capacity is often high output under heavy conditions.";
+
+      const dm = {}; domains.forEach(d=>{ dm[d.id]=d; });
+
+      const designDomains = dl.filter(d => d.category === CATEGORY_DESIGN);
+      const conditionsDomains = dl.filter(d => d.category === CATEGORY_CONDITIONS);
+      const accumulatedDomains = dl.filter(d => d.category === CATEGORY_ACCUMULATED);
+      const currentDomains = dl.filter(d => d.category === CATEGORY_CURRENT);
+
+      const DomainGroup = ({title,color,doms,costLabel,costValue}) => (
+        <div style={{marginBottom:32}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+            <h4 style={{fontFamily:FONT,fontSize:18,color:color,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase"}}>{title}</h4>
+            {costLabel && costValue !== null && <span style={{fontFamily:FONT,fontSize:18,color:color,fontWeight:700}}>{costLabel}: {costValue}/100</span>}
+          </div>
+          {doms.map((d,i)=> {
+            const bc=loadColor(d.load);
+            return (
+              <div key={i} style={{marginBottom:14}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                  <span style={{fontFamily:FONT,fontSize:18,color:TEXT_SECONDARY,fontWeight:600}}>{d.name}</span>
+                  <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                    <span style={{fontSize:16,color:confColor(d.conf),fontFamily:FONT,fontWeight:500}}>{d.conf}</span>
+                    <span style={{fontFamily:FONT,fontSize:18,color:bc,fontWeight:700}}>{d.load ?? "–"}</span>
+                  </div>
+                </div>
+                <div style={{height:8,background:"rgba(255,255,255,0.08)",borderRadius:4}}>
+                  <div style={{height:"100%",width:`${d.load ?? 0}%`,background:bc,borderRadius:4}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+
+      return (
+        <div style={{minHeight:"100vh",padding:"40px 28px",maxWidth:680,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:32}}>
+            <div style={{fontSize:18,letterSpacing:"0.3em",color:PURPLE,marginBottom:12,textTransform:"uppercase",fontFamily:FONT,fontWeight:600}}>Your Misfit Tax Ledger</div>
+            <p style={{fontFamily:FONT,fontSize:19,color:TEXT_TERTIARY,marginBottom:28,lineHeight:1.6}}>This is not a diagnosis. It is a map of where capacity is being consumed.</p>
+
+            <div style={{width:160,height:160,borderRadius:"50%",margin:"0 auto 16px",border:`5px solid ${cc}`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:`radial-gradient(circle,${cc}22 0%,transparent 70%)`}}>
+              <span style={{fontFamily:FONT,fontSize:56,color:cc,fontWeight:700}}>{ac ?? "–"}%</span>
+              <span style={{fontFamily:FONT,fontSize:17,color:TEXT_TERTIARY,letterSpacing:"0.08em",fontWeight:600}}>available today</span>
+            </div>
+
+            <p style={{fontFamily:FONT,fontSize:19,color:TEXT_SECONDARY,fontStyle:"italic",maxWidth:460,margin:"0 auto 10px"}}>{cLine}</p>
+            {tli !== null && <p style={{fontFamily:FONT,fontSize:18,color:TEXT_SECONDARY}}>Overall load index: <strong>{tli}/100</strong></p>}
+          </div>
+
+          <div style={{textAlign:"center",padding:22,background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.08)",marginBottom:32}}>
+            <p style={{fontFamily:FONT,fontSize:22,color:PURPLE_LIGHT,fontStyle:"italic",marginBottom:8,fontWeight:600}}>The design was never wrong. The conditions were.</p>
+            <p style={{fontFamily:FONT,fontSize:18,color:TEXT_SECONDARY}}>What's left is what remains after the tax.</p>
+          </div>
+
+          <div style={{background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.08)",padding:"22px 26px",marginBottom:32}}>
+            <DomainGroup title="Design" color={PURPLE} doms={designDomains} costLabel="Mismatch" costValue={mc}/>
+            <DomainGroup title="Conditions" color={TEAL} doms={conditionsDomains} costLabel="Tax" costValue={tc}/>
+            <DomainGroup title="Accumulated" color={BEIGE} doms={accumulatedDomains} costLabel="Carry" costValue={acc}/>
+            <DomainGroup title="Current" color={TEXT_TERTIARY} doms={currentDomains}/>
+          </div>
+
+          <h3 style={{fontFamily:FONT,fontSize:22,color:PURPLE,fontWeight:700,marginBottom:12,letterSpacing:"0.08em"}}>Where the cost is highest</h3>
+          <p style={{fontFamily:FONT,fontSize:19,color:TEXT_SECONDARY,marginBottom:24,fontStyle:"italic"}}>{di}</p>
+
+          {td.map((t,i)=> {
+            const d = dm[t.key];
+            const bc = loadColor(t.load);
+            return (
+              <div key={i} style={{marginBottom:28,padding:24,background:BG_CARD,borderRadius:14,border:"1.5px solid rgba(255,255,255,0.08)"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                  <span style={{fontFamily:FONT,fontSize:20,color:TEXT_PRIMARY,fontWeight:600}}>{d?.name || t.name}</span>
+                  <span style={{fontFamily:FONT,fontSize:20,color:bc,fontWeight:700}}>{t.load}/100</span>
+                </div>
+                <div style={{height:8,background:"rgba(255,255,255,0.08)",borderRadius:4,marginBottom:16}}>
+                  <div style={{height:"100%",width:`${t.load}%`,background:bc,borderRadius:4}}/>
+                </div>
+                <div style={{display:"flex",gap:12,marginBottom:16}}>
+                  <span style={{fontSize:17,color:TEXT_TERTIARY,fontFamily:FONT,fontStyle:"italic"}}>{d?.categoryLabel}</span>
+                  <span style={{fontSize:17,color:confColor(t.conf),fontFamily:FONT,fontWeight:600}}>Confidence: {t.conf}</span>
+                </div>
+
+                {d && [
+                  {l:"Reduce",c:TEAL,t:d.reduce},
+                  {l:"Protect",c:BEIGE,t:d.protect},
+                  {l:"Restore",c:PURPLE,t:d.restore}
+                ].map((x,j)=>(
+                  <div key={j} style={{borderLeft:`4px solid ${x.c}`,paddingLeft:16,marginBottom:j<2?14:0}}>
+                    <span style={{fontSize:16,color:x.c,letterSpacing:"0.12em",textTransform:"uppercase",fontFamily:FONT,fontWeight:700}}>{x.l}</span>
+                    <p style={{fontSize:18,color:TEXT_SECONDARY,fontFamily:FONT,lineHeight:1.5,marginTop:6}}>{x.t}</p>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+
+          <div style={{textAlign:"center",marginBottom:36}}>
+            <button onClick={()=>{
+              const lines=[
+                "THE MISFIT TAX LEDGER – Results Summary","",
+                `Available Capacity Today: ${ac ?? "–"}%`,
+                `Overall Load Index: ${tli ?? "–"}/100`,"",
+                `Design (Mismatch): ${mc ?? "–"}/100`,
+                `Conditions (Tax): ${tc ?? "–"}/100`,
+                `Accumulated (Carry): ${acc ?? "–"}/100`,"",
+                "TOP DRIVERS:"
+              ];
+              td.forEach((t,i)=>lines.push(`${i+1}. ${t.name}: ${t.load}/100 (${t.conf})`));
+              lines.push("","DOMAIN BREAKDOWN:");
+              dl.forEach(d=>lines.push(`  ${d.name}: ${d.load ?? "–"}/100 (${d.conf})`));
+              lines.push("","That wasn't your limit. That was what was left after the tax.","Reduce. Protect. Restore.","","Tanya Hicks · Human Systems Architect");
+              copyText(lines.join("\n")).then(ok=>{ if(ok){ setCopied(true); setTimeout(()=>setCopied(false),2000); }});
+            }} style={{padding:"14px 32px",background:copied?"rgba(91,191,186,0.18)":"rgba(123,107,161,0.15)",border:`2px solid ${copied?TEAL:PURPLE_DIM}`,color:copied?TEAL:PURPLE_LIGHT,fontFamily:FONT,fontSize:19,fontWeight:700,borderRadius:8,letterSpacing:"0.08em"}}>
+              {copied ? "Copied ✓" : "Copy results summary"}
+            </button>
+            <p style={{fontFamily:FONT,fontSize:17,color:TEXT_TERTIARY,marginTop:12}}>Plain text – for notes, journal, or your practitioner</p>
+          </div>
+
+          <div style={{textAlign:"center",padding:"32px 0 24px",borderTop:"1.5px solid rgba(255,255,255,0.08)"}}>
+            <p style={{fontFamily:FONT,fontSize:18,color:TEXT_TERTIARY,lineHeight:1.6,marginBottom:22,maxWidth:480,margin:"0 auto 22px"}}>This tool makes the invisible visible. Not to shame privilege. Not to rank capacity. To stop comparing without context.</p>
+            <p style={{fontFamily:FONT,fontSize:22,color:PURPLE_LIGHT,fontStyle:"italic",marginBottom:8,fontWeight:600}}>That wasn't your limit. That was what was left after the tax.</p>
+            <p style={{fontFamily:FONT,fontSize:19,color:TEXT_SECONDARY,marginBottom:32}}>Reduce. Protect. Restore.</p>
+            <button onClick={onRestart} style={{padding:"14px 36px",border:"2px solid rgba(255,255,255,0.18)",color:TEXT_TERTIARY,fontFamily:FONT,fontSize:18,borderRadius:8}}>Start again</button>
+            <div style={{marginTop:32,fontSize:17,color:TEXT_DIM,fontFamily:FONT,lineHeight:1.6}}>
+              Tanya Hicks · Human Systems Architect<br/>Part of the Designed for More series<br/><br/>
+              <span style={{fontSize:16}}>Not medical advice. Not diagnostic. Not for employment decisions. Your answers stay in your browser unless you export.</span>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const STORAGE_KEY="misfitTaxLedger.single";
+    const loadSaved=()=>{ try{ const s=localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):null; }catch{return null;} };
+    const saveProg=(screen,domainIndex,answers)=>{ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({screen,domainIndex,answers})); }catch{} };
+    const clearSaved=()=>{ try{ localStorage.removeItem(STORAGE_KEY);}catch{} };
+
+    function MisfitTaxLedger(){
+      const [screen,setScreen]=useState("welcome");
+      const [domainIndex,setDomainIndex]=useState(0);
+      const [answers,setAnswers]=useState({});
+      const saveRef=useRef(null);
+
+      useEffect(()=>{
+        if(screen==="welcome") return;
+        if(saveRef.current) clearTimeout(saveRef.current);
+        saveRef.current=setTimeout(()=>{ saveProg(screen,domainIndex,answers); saveRef.current=null; },300);
+        return ()=>{ if(saveRef.current) clearTimeout(saveRef.current); };
+      },[screen,domainIndex,answers]);
+
+      const next=()=>{ if(domainIndex<8) setDomainIndex(domainIndex+1); else setScreen("results"); window.scrollTo({top:0}); };
+      const prev=()=>{ if(domainIndex>0) setDomainIndex(domainIndex-1); window.scrollTo({top:0}); };
+
+      const start=()=>{
+        clearSaved();
+        setAnswers({});
+        setDomainIndex(0);
+        setScreen("questions");
+        window.scrollTo({top:0});
+      };
+
+      return (
+        <div style={{minHeight:"100vh",background:BG_DEEP,color:"#fff",position:"relative"}}>
+          <GeodesicBg/>
+          <div style={{position:"relative",zIndex:1}}>
+            {screen==="welcome" && <WelcomeScreen onStart={start}/>}
+            {screen==="questions" && <DomainScreen domain={domains[domainIndex]} domainIndex={domainIndex} answers={answers} setAnswers={setAnswers} onNext={next} onBack={prev}/>}
+            {screen==="results" && <ResultsScreen answers={answers} onRestart={()=>{ setScreen("welcome"); setAnswers({}); setDomainIndex(0); clearSaved(); window.scrollTo({top:0}); }}/>}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<MisfitTaxLedger />);
+  </script>
+</body>
+</html>
